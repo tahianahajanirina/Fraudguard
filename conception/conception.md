@@ -2,6 +2,10 @@
 # Projet MLOps — Détection de Fraude Bancaire
 # Mastère Spécialisé IA — Télécom Paris
 
+<p align="center">
+  <img src="architecture.png" alt="Architecture système FraudGuard" width="100%">
+</p>
+
 ---
 
 ## 1. Contexte du projet
@@ -273,10 +277,6 @@ L'endpoint `/metrics` n'existe pas encore dans le code d'Ahmed — c'est à ajou
 ---
 
 ## 4. Architecture cible
-
-<p align="center">
-  <img src="architecture.png" alt="Architecture système FraudGuard" width="100%">
-</p>
 
 ### 4.1 Services Docker Compose (environnement de développement)
 

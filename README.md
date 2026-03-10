@@ -1,6 +1,6 @@
 # FraudGuard
 
-> Production-grade MLOps pipeline for credit card fraud detection.
+> POC MLOps pipeline for credit card fraud detection.
 
 **Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris**
 

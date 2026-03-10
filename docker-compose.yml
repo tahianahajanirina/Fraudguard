@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mlflow:
+    image: python:3.11-slim
+    command:
+      - sh
+      - -c
+      - |
+        pip install uv --quiet &&
+        uv pip install --system 'mlflow>=2.11,<3' psycopg2-binary &&
+        mlflow server \
+          --backend-store-uri postgresql://mlflow:mlflow@postgres/mlflow_db \
+          --artifacts-destination /mlflow/artifacts \
+          --serve-artifacts \
+          --host 0.0.0.0 \
+          --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    environment:
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow:
+    build:
+      context: ./airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+      AIRFLOW_UID: ${AIRFLOW_UID}
+    volumes:
+      - ../creditcard.csv:/opt/airflow/data:ro
+      - ./airflow/dags:/opt/airflow/dags
+      - ./artifacts:/opt/airflow/artifacts
+    ports:
+      - "8080:8080"
+    command:
+      - bash
+      - -c
+      - |
+        airflow db migrate &&
+        airflow users create \
+          --username admin --password admin \
+          --firstname Admin --lastname User \
+          --role Admin --email admin@fraudguard.ai \
+          2>/dev/null || true &&
+        airflow webserver &
+        airflow scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+
+  api:
+    build:
+      context: ./api
+    environment:
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+    volumes:
+      - ./artifacts:/artifacts
+    ports:
+      - "8000:8000"
+    depends_on:
+      mlflow:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  mlflow_artifacts:

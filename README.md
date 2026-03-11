@@ -27,7 +27,7 @@ creditcard.csv
 [FastAPI /predict] ◄────── loads Production model ◄┘
 ```
 
-Four Docker services share a single network:
+Services share a single network:
 
 | Service    | Port | Role                                      |
 |------------|------|-------------------------------------------|
@@ -35,6 +35,10 @@ Four Docker services share a single network:
 | `mlflow`    | 5000 | Experiment tracking + Model Registry      |
 | `airflow`   | 8080 | Pipeline orchestration (LocalExecutor)    |
 | `api`       | 8000 | FastAPI REST prediction service           |
+| `pgadmin`   | 5050 | PostgreSQL UI                             |
+| `localstack`| 4566 | S3-compatible bucket for MLflow artifacts |
+
+MLflow metadata are stored in PostgreSQL, while models/artifacts are stored in an S3 bucket (`s3://mlflow`) hosted locally by LocalStack.
 
 ---
 
@@ -74,22 +78,29 @@ MLOPS_Project/
    cd fraudguard
    ```
 
-2. **Build and start all services**
+2. **Configure environment variables**
+  ```bash
+  cp .env.example .env
+  ```
+
+3. **Build and start all services**
    ```bash
-   docker-compose up --build -d
+  docker compose up --build -d
    ```
 
-3. **Wait ~60 seconds** for Postgres and MLflow to initialise
+4. **Wait ~60-90 seconds** for first-time bootstrap (Postgres + LocalStack bucket + Airflow init)
 
-4. **Open Airflow** at http://localhost:8080 — login: `admin` / `admin`
+5. **Open Airflow** at http://localhost:8080 — login uses values from `.env`
 
-5. **Unpause and trigger** the `fraud_detection_pipeline` DAG
+6. **Unpause and trigger** the `fraud_detection_pipeline` DAG
 
-6. **Monitor** the run in the Airflow UI — takes ~5 minutes
+7. **Monitor** the run in the Airflow UI — takes ~5 minutes
 
-7. **Open MLflow** at http://localhost:5000 to compare experiment runs and inspect the Model Registry
+8. **Open MLflow** at http://localhost:5000 to compare experiment runs and inspect the Model Registry
 
-8. **Once the pipeline completes**, the API is live at http://localhost:8000/docs
+9. **Once the pipeline completes**, the API is live at http://localhost:8000/docs
+
+10. **(Optional) Inspect bucket via LocalStack** (S3 endpoint at http://localhost:4566)
 
 ---
 

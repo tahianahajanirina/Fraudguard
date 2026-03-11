@@ -43,4 +43,22 @@ down-clean:
 	docker-compose down -v
 
 # ---------------------------------------------------------------------------
-.PHONY: test test-api test-preprocessing test-model test-pipeline lint format up down down-clean
+# Kubernetes (Docker Desktop)
+# ---------------------------------------------------------------------------
+k8s-build:
+	docker compose build api airflow mlflow webapp
+
+k8s-deploy-dev: k8s-build
+	bash deploy-k8s.sh dev
+
+k8s-deploy-prod: k8s-build
+	bash deploy-k8s.sh prod
+
+k8s-destroy-dev:
+	kubectl delete namespace fraudguard-dev --ignore-not-found
+
+k8s-destroy-prod:
+	kubectl delete namespace fraudguard-prod --ignore-not-found
+
+# ---------------------------------------------------------------------------
+.PHONY: test test-api test-preprocessing test-model test-pipeline lint format up down down-clean k8s-build k8s-deploy-dev k8s-deploy-prod k8s-destroy-dev k8s-destroy-prod

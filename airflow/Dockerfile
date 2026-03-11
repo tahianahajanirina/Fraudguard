@@ -24,12 +24,14 @@ RUN uv pip install --system \
     "lightgbm>=4.3,<5" \
     "scikit-learn>=1.4,<2" \
     "mlflow>=2.11,<3" \
+    "boto3>=1.34,<2" \
     "pandas>=2.2,<3" \
     "imbalanced-learn>=0.12,<1" \
     "joblib>=1.3,<2" \
     "pyarrow>=15,<16" \
     "psycopg2-binary>=2.9,<3" \
     "matplotlib>=3.8,<4" \
-    "apache-airflow[statsd]>=2.8.1,<3"
+    "apache-airflow[statsd]>=2.8.1,<3" \
+    "pytest>=7,<8"
 
 USER airflow

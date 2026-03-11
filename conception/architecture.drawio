@@ -5,45 +5,70 @@
     <mxCell id="t" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontColor=#1a1a2e;" value="&lt;b style=&quot;font-size:16px&quot;&gt;FraudGuard — Architecture Système&lt;/b&gt;" vertex="1">
       <mxGeometry height="30" width="500" x="450" y="15" as="geometry" />
     </mxCell>
+    <!-- ===== ZONE VERTE : Existant ===== -->
     <mxCell id="zg" parent="1" style="rounded=1;fillColor=#E8F5E9;strokeColor=#4CAF50;strokeWidth=2;arcSize=6;" value="" vertex="1">
-      <mxGeometry height="340" width="620" x="30" y="60" as="geometry" />
+      <mxGeometry height="420" width="900" x="30" y="60" as="geometry" />
     </mxCell>
-    <mxCell id="zgl" parent="1" style="text;html=1;fontSize=12;fontColor=#2E7D32;" value="&lt;b&gt;✅ Existant (Docker Compose)&lt;/b&gt;" vertex="1">
-      <mxGeometry height="20" width="250" x="40" y="65" as="geometry" />
+    <mxCell id="zgl" parent="1" style="text;html=1;fontSize=12;fontColor=#2E7D32;" value="&lt;b&gt;✅ Existant (Docker Compose — 8 services)&lt;/b&gt;" vertex="1">
+      <mxGeometry height="20" width="350" x="40" y="65" as="geometry" />
     </mxCell>
+    <!-- Ligne 1 : PostgreSQL, pgAdmin, MLflow, Airflow, DAGs, Model Registry -->
     <mxCell id="pg" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;strokeWidth=1.5;" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;:5432 | healthcheck&lt;/font&gt;" vertex="1">
       <mxGeometry height="60" width="110" x="50" y="100" as="geometry" />
     </mxCell>
+    <mxCell id="pga" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;strokeWidth=1.5;" value="&lt;b&gt;pgAdmin&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;:5051 | Admin PG&lt;/font&gt;" vertex="1">
+      <mxGeometry height="60" width="110" x="50" y="180" as="geometry" />
+    </mxCell>
     <mxCell id="mf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;strokeWidth=1.5;" value="&lt;b&gt;MLflow&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;:5000 | Tracking + Registry&lt;br&gt;✅ Dockerfile dédié (uv + mlflow)&lt;/font&gt;" vertex="1">
-      <mxGeometry height="60" width="160" x="50" y="195" as="geometry" />
+      <mxGeometry height="60" width="160" x="185" y="100" as="geometry" />
     </mxCell>
     <mxCell id="af" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;strokeWidth=1.5;" value="&lt;b&gt;Airflow&lt;/b&gt; &lt;font style=&quot;font-size:9px&quot;&gt;:8080&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="110" x="270" y="95" as="geometry" />
+      <mxGeometry height="40" width="110" x="370" y="100" as="geometry" />
     </mxCell>
     <mxCell id="d1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;DAG 1&lt;/b&gt; training&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;schedule = None&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="150" x="250" y="155" as="geometry" />
+      <mxGeometry height="40" width="150" x="350" y="160" as="geometry" />
     </mxCell>
-    <mxCell id="d2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;🔲 DAG 2&lt;/b&gt; CT&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;schedule = @daily&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="150" x="250" y="215" as="geometry" />
+    <mxCell id="d2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;✅ DAG 2&lt;/b&gt; CT&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;schedule = @daily&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="150" x="350" y="220" as="geometry" />
     </mxCell>
     <mxCell id="reg" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;Model Registry&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Production / Staging&lt;/font&gt;" vertex="1">
-      <mxGeometry height="60" width="155" x="460" y="95" as="geometry" />
+      <mxGeometry height="60" width="155" x="540" y="100" as="geometry" />
+    </mxCell>
+    <!-- Ligne 2 : LocalStack S3, FastAPI, Streamlit -->
+    <mxCell id="s3" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFE082;strokeColor=#F9A825;fontSize=10;strokeWidth=2;" value="&lt;b&gt;LocalStack S3&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;modèles + artefacts (local)&lt;/font&gt;" vertex="1">
+      <mxGeometry height="60" width="130" x="185" y="195" as="geometry" />
     </mxCell>
     <mxCell id="api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;strokeWidth=1.5;" value="&lt;b&gt;FastAPI&lt;/b&gt; &lt;font style=&quot;font-size:9px&quot;&gt;:8000&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;/predict | /health&lt;br&gt;✅ healthcheck ajouté&lt;/font&gt;" vertex="1">
-      <mxGeometry height="60" width="130" x="475" y="190" as="geometry" />
+      <mxGeometry height="60" width="130" x="560" y="195" as="geometry" />
     </mxCell>
-    <mxCell id="s3" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFE082;strokeColor=#F9A825;fontSize=10;strokeWidth=2;" value="&lt;b&gt;AWS S3&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;modèles + artefacts&lt;/font&gt;" vertex="1">
-      <mxGeometry height="60" width="120" x="50" y="275" as="geometry" />
+    <mxCell id="st" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;strokeWidth=1.5;" value="&lt;b&gt;Streamlit&lt;/b&gt; &lt;font style=&quot;font-size:9px&quot;&gt;:8501&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Dashboard fraude&lt;/font&gt;" vertex="1">
+      <mxGeometry height="60" width="130" x="720" y="195" as="geometry" />
+    </mxCell>
+    <!-- Ligne 3 : creditcard.csv, LightGBM, IsolationForest -->
+    <mxCell id="csv" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=0.12;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" value="&lt;font style=&quot;font-size:9px&quot;&gt;creditcard.csv&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="95" x="50" y="280" as="geometry" />
     </mxCell>
     <mxCell id="lgbm" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontSize=10;" value="&lt;b&gt;LightGBM&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;supervisé → serving&lt;/font&gt;" vertex="1">
-      <mxGeometry height="35" width="130" x="340" y="290" as="geometry" />
+      <mxGeometry height="35" width="130" x="185" y="285" as="geometry" />
     </mxCell>
     <mxCell id="ifor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=10;" value="&lt;b&gt;Isolation Forest&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;non-supervisé → drift&lt;/font&gt;" vertex="1">
-      <mxGeometry height="35" width="140" x="490" y="290" as="geometry" />
+      <mxGeometry height="35" width="140" x="340" y="285" as="geometry" />
     </mxCell>
-    <mxCell id="csv" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=0.12;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" value="&lt;font style=&quot;font-size:9px&quot;&gt;creditcard.csv&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="95" x="200" y="280" as="geometry" />
+    <!-- Ligne 4 : Tests, Makefile, .env -->
+    <mxCell id="te" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;✅ Tests pytest&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;4 fichiers + conftest.py&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="140" x="50" y="340" as="geometry" />
     </mxCell>
+    <mxCell id="mk" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;✅ Makefile&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;test, lint, format, up, down&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="150" x="210" y="340" as="geometry" />
+    </mxCell>
+    <mxCell id="env" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;✅ .env&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;variables d'environnement&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="140" x="380" y="340" as="geometry" />
+    </mxCell>
+    <!-- User actor -->
+    <mxCell id="us" parent="1" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;" value="&lt;b&gt;User&lt;/b&gt;" vertex="1">
+      <mxGeometry height="50" width="35" x="870" y="100" as="geometry" />
+    </mxCell>
+    <!-- ===== ARÊTES zone verte ===== -->
     <mxCell id="a1" edge="1" parent="1" source="af" style="rounded=1;strokeColor=#82b366;strokeWidth=1.5;" target="d1">
       <mxGeometry relative="1" as="geometry" />
     </mxCell>
@@ -82,64 +107,61 @@
         <mxPoint x="3" y="-13" as="offset" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="a6" edge="1" parent="1" source="d2" style="rounded=1;strokeColor=#E65100;strokeWidth=1.5;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="d1">
+    <mxCell id="a6" edge="1" parent="1" source="d2" style="rounded=1;strokeColor=#82b366;strokeWidth=1.5;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="d1">
       <mxGeometry relative="1" as="geometry">
         <Array as="points">
-          <mxPoint x="230" y="235" />
-          <mxPoint x="230" y="175" />
+          <mxPoint x="330" y="240" />
+          <mxPoint x="330" y="180" />
         </Array>
       </mxGeometry>
     </mxCell>
-    <mxCell id="a6l" connectable="0" parent="a6" style="edgeLabel;html=1;" value="&lt;font style=&quot;font-size:8px;color:#E65100&quot;&gt;retrain&lt;/font&gt;" vertex="1">
+    <mxCell id="a6l" connectable="0" parent="a6" style="edgeLabel;html=1;" value="&lt;font style=&quot;font-size:8px;color:#82b366&quot;&gt;retrain&lt;/font&gt;" vertex="1">
       <mxGeometry relative="1" as="geometry">
         <mxPoint x="-10" y="10" as="offset" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="zo" parent="1" style="rounded=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;dashed=1;dashPattern=8 4;arcSize=6;" value="" vertex="1">
-      <mxGeometry height="340" width="680" x="690" y="60" as="geometry" />
-    </mxCell>
-    <mxCell id="zol" parent="1" style="text;html=1;fontSize=12;fontColor=#E65100;" value="&lt;b&gt;🔲 À créer&lt;/b&gt;" vertex="1">
-      <mxGeometry height="20" width="120" x="700" y="65" as="geometry" />
-    </mxCell>
-    <mxCell id="st" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=11;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Streamlit&lt;/b&gt; &lt;font style=&quot;font-size:9px&quot;&gt;:8501&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="130" x="710" y="100" as="geometry" />
-    </mxCell>
-    <mxCell id="k8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Kubernetes&lt;/b&gt; (Docker Desktop)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;api ×2 :30800 | webapp :30850&lt;br&gt;images locales (imagePullPolicy: Never)&lt;/font&gt;" vertex="1">
-      <mxGeometry height="55" width="250" x="710" y="170" as="geometry" />
-    </mxCell>
-    <mxCell id="mo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Prometheus + Grafana&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;bonus&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="160" x="710" y="255" as="geometry" />
-    </mxCell>
-    <mxCell id="ci" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;GitHub Actions&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;CI: lint + test&lt;br&gt;CD: docker build local → kubectl apply&lt;/font&gt;" vertex="1">
-      <mxGeometry height="55" width="220" x="1010" y="100" as="geometry" />
-    </mxCell>
-    <mxCell id="te" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Tests pytest&lt;/b&gt;" vertex="1">
-      <mxGeometry height="35" width="110" x="1010" y="185" as="geometry" />
-    </mxCell>
-    <mxCell id="env" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#C62828;fontSize=10;strokeWidth=2;dashed=1;dashPattern=6 3;" value="&lt;b&gt;.env&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:8px&quot;&gt;+ AWS credentials&lt;/font&gt;" vertex="1">
-      <mxGeometry height="40" width="120" x="1150" y="185" as="geometry" />
-    </mxCell>
-    <mxCell id="mk" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Makefile&lt;/b&gt;" vertex="1">
-      <mxGeometry height="30" width="90" x="1165" y="245" as="geometry" />
-    </mxCell>
-    <mxCell id="gh" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=0.12;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;GitHub&lt;/b&gt;" vertex="1">
-      <mxGeometry height="40" width="100" x="1090" y="295" as="geometry" />
-    </mxCell>
-    <mxCell id="us" parent="1" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=9;" value="&lt;b&gt;User&lt;/b&gt;" vertex="1">
-      <mxGeometry height="50" width="35" x="890" y="95" as="geometry" />
-    </mxCell>
-    <mxCell id="n1" edge="1" parent="1" source="api" style="rounded=1;strokeColor=#E65100;strokeWidth=1.5;dashed=1;" target="st">
+    <!-- api → st (trait plein vert, Streamlit existe) -->
+    <mxCell id="n1" edge="1" parent="1" source="api" style="rounded=1;strokeColor=#82b366;strokeWidth=1.5;" target="st">
       <mxGeometry relative="1" as="geometry" />
     </mxCell>
     <mxCell id="n1l" connectable="0" parent="n1" style="edgeLabel;html=1;" value="&lt;font style=&quot;font-size:8px&quot;&gt;/predict&lt;/font&gt;" vertex="1">
       <mxGeometry relative="1" as="geometry">
-        <mxPoint x="-34" y="8" as="offset" />
+        <mxPoint x="0" y="-10" as="offset" />
       </mxGeometry>
     </mxCell>
+    <!-- user → st -->
+    <mxCell id="nu" edge="1" parent="1" source="us" style="rounded=1;strokeColor=#666;strokeWidth=1;" target="st">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- pgAdmin → pg -->
+    <mxCell id="apga" edge="1" parent="1" source="pga" style="rounded=1;strokeColor=#6c8ebf;strokeWidth=1;dashed=1;" target="pg">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- ===== ZONE ORANGE : À faire ===== -->
+    <mxCell id="zo" parent="1" style="rounded=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;dashed=1;dashPattern=8 4;arcSize=6;" value="" vertex="1">
+      <mxGeometry height="160" width="680" x="30" y="500" as="geometry" />
+    </mxCell>
+    <mxCell id="zol" parent="1" style="text;html=1;fontSize=12;fontColor=#E65100;" value="&lt;b&gt;❌ À faire&lt;/b&gt;" vertex="1">
+      <mxGeometry height="20" width="120" x="40" y="505" as="geometry" />
+    </mxCell>
+    <mxCell id="k8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Kubernetes&lt;/b&gt; (Docker Desktop)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;api ×2 :30800 | webapp :30850&lt;br&gt;images locales (imagePullPolicy: Never)&lt;/font&gt;" vertex="1">
+      <mxGeometry height="55" width="250" x="50" y="535" as="geometry" />
+    </mxCell>
+    <mxCell id="ci" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;GitHub Actions&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;CI: lint + test&lt;br&gt;CD: docker build local → kubectl apply&lt;/font&gt;" vertex="1">
+      <mxGeometry height="55" width="220" x="320" y="535" as="geometry" />
+    </mxCell>
+    <mxCell id="mo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;strokeWidth=1.5;dashed=1;dashPattern=6 3;" value="&lt;b&gt;Prometheus + Grafana&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;bonus&lt;/font&gt;" vertex="1">
+      <mxGeometry height="40" width="160" x="50" y="605" as="geometry" />
+    </mxCell>
+    <mxCell id="gh" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=0.12;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;strokeWidth=1.5;" value="&lt;b&gt;GitHub&lt;/b&gt;" vertex="1">
+      <mxGeometry height="40" width="100" x="560" y="545" as="geometry" />
+    </mxCell>
+    <!-- Arêtes zone orange -->
     <mxCell id="n2" edge="1" parent="1" source="api" style="rounded=1;strokeColor=#E65100;strokeWidth=1;dashed=1;" target="mo">
       <mxGeometry relative="1" as="geometry">
         <Array as="points">
-          <mxPoint x="660" y="275" />
+          <mxPoint x="625" y="460" />
+          <mxPoint x="130" y="460" />
         </Array>
       </mxGeometry>
     </mxCell>
@@ -149,12 +171,7 @@
       </mxGeometry>
     </mxCell>
     <mxCell id="n4" edge="1" parent="1" source="ci" style="rounded=1;strokeColor=#E65100;strokeWidth=1.5;dashed=1;" target="k8">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="980" y="130" />
-          <mxPoint x="980" y="197" />
-        </Array>
-      </mxGeometry>
+      <mxGeometry relative="1" as="geometry" />
     </mxCell>
     <mxCell id="n4l" connectable="0" parent="n4" style="edgeLabel;html=1;" value="&lt;font style=&quot;font-size:8px&quot;&gt;build local&lt;br&gt;+ kubectl apply&lt;/font&gt;" vertex="1">
       <mxGeometry relative="1" as="geometry">
@@ -169,35 +186,36 @@
         <mxPoint x="5" y="17" as="offset" />
       </mxGeometry>
     </mxCell>
-    <mxCell id="nu" edge="1" parent="1" source="us" style="rounded=1;strokeColor=#666;strokeWidth=1;" target="st">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
+    <!-- ===== LÉGENDE ===== -->
     <mxCell id="leg_bg" parent="1" style="rounded=1;fillColor=#FAFAFA;strokeColor=#DDD;" value="" vertex="1">
-      <mxGeometry height="155" width="620" x="30" y="430" as="geometry" />
+      <mxGeometry height="110" width="900" x="30" y="680" as="geometry" />
     </mxCell>
-    <mxCell id="leg_t" parent="1" style="text;html=1;fontSize=11;fontColor=#333;" value="&lt;b&gt;Résumé&lt;/b&gt;" vertex="1">
-      <mxGeometry height="16" width="80" x="40" y="435" as="geometry" />
+    <mxCell id="leg_t" parent="1" style="text;html=1;fontSize=11;fontColor=#333;" value="&lt;b&gt;Légende&lt;/b&gt;" vertex="1">
+      <mxGeometry height="16" width="80" x="40" y="685" as="geometry" />
     </mxCell>
-    <mxCell id="l1" parent="1" style="text;html=1;fontSize=10;fontColor=#388E3C;align=left;" value="&lt;b&gt;LightGBM&lt;/b&gt; (supervisé) = chargé dans l&#39;API, répond à /predict" vertex="1">
-      <mxGeometry height="15" width="400" x="45" y="455" as="geometry" />
+    <mxCell id="l1" parent="1" style="text;html=1;fontSize=10;fontColor=#388E3C;align=left;" value="&lt;b&gt;LightGBM&lt;/b&gt; (supervisé) = chargé dans l'API, répond à /predict" vertex="1">
+      <mxGeometry height="15" width="400" x="45" y="705" as="geometry" />
     </mxCell>
     <mxCell id="l2" parent="1" style="text;html=1;fontSize=10;fontColor=#E65100;align=left;" value="&lt;b&gt;Isolation Forest&lt;/b&gt; (non-supervisé) = filet de sécurité + sentinelle drift" vertex="1">
-      <mxGeometry height="15" width="400" x="45" y="472" as="geometry" />
+      <mxGeometry height="15" width="400" x="45" y="722" as="geometry" />
     </mxCell>
-    <mxCell id="l3" parent="1" style="text;html=1;fontSize=10;fontColor=#F9A825;align=left;" value="&lt;b&gt;AWS S3&lt;/b&gt; = stockage des modèles et artefacts MLflow (pas de volume Docker)" vertex="1">
-      <mxGeometry height="15" width="500" x="45" y="489" as="geometry" />
+    <mxCell id="l3" parent="1" style="text;html=1;fontSize=10;fontColor=#F9A825;align=left;" value="&lt;b&gt;LocalStack S3&lt;/b&gt; = stockage local des artefacts MLflow (émulateur AWS, port 4566)" vertex="1">
+      <mxGeometry height="15" width="530" x="45" y="739" as="geometry" />
+    </mxCell>
+    <mxCell id="l3b" parent="1" style="text;html=1;fontSize=10;fontColor=#6c8ebf;align=left;" value="&lt;b&gt;pgAdmin&lt;/b&gt; = administration PostgreSQL (:5051)" vertex="1">
+      <mxGeometry height="15" width="350" x="45" y="756" as="geometry" />
     </mxCell>
     <mxCell id="l4" parent="1" style="text;html=1;fontSize=10;fontColor=#333;align=left;" value="&lt;b&gt;K8s images locales&lt;/b&gt; — pas de DockerHub, imagePullPolicy: Never" vertex="1">
-      <mxGeometry height="15" width="400" x="45" y="506" as="geometry" />
+      <mxGeometry height="15" width="400" x="500" y="705" as="geometry" />
     </mxCell>
     <mxCell id="l5" parent="1" style="text;html=1;fontSize=10;fontColor=#6A1B9A;align=left;" value="&lt;b&gt;Promote&lt;/b&gt; = Staging → Production (seulement si AUC-PR nouveau &gt; ancien)" vertex="1">
-      <mxGeometry height="15" width="500" x="45" y="523" as="geometry" />
+      <mxGeometry height="15" width="500" x="500" y="722" as="geometry" />
     </mxCell>
     <mxCell id="l6" parent="1" style="text;html=1;fontSize=10;fontColor=#333;align=left;" value="&lt;b&gt;DAG 1&lt;/b&gt; schedule=None | &lt;b&gt;DAG 2&lt;/b&gt; @daily (vérifie perf + drift)" vertex="1">
-      <mxGeometry height="15" width="400" x="45" y="540" as="geometry" />
+      <mxGeometry height="15" width="400" x="500" y="739" as="geometry" />
     </mxCell>
-    <mxCell id="l7" parent="1" style="text;html=1;fontSize=10;fontColor=#2E7D32;align=left;" value="&lt;b&gt;Tous les services&lt;/b&gt; ont des healthchecks + depends_on: service_healthy" vertex="1">
-      <mxGeometry height="15" width="500" x="45" y="557" as="geometry" />
+    <mxCell id="l7" parent="1" style="text;html=1;fontSize=10;fontColor=#2E7D32;align=left;" value="✅ = implémenté | ❌ = reste à faire" vertex="1">
+      <mxGeometry height="15" width="300" x="500" y="756" as="geometry" />
     </mxCell>
   </root>
 </mxGraphModel>

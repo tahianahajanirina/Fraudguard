@@ -206,17 +206,16 @@ def _predict_single(
     row_df: pd.DataFrame,
 ) -> tuple[int, float | None, str]:
     """Run model inference and return (is_fraud, probability, risk_level)."""
-    raw = model.predict(row_df)
-
     if "lightgbm" in model_name.lower():
-        # pyfunc wrapper for LightGBM returns a DataFrame or array of probas
-        if hasattr(raw, "iloc"):
-            proba = float(raw.iloc[0, 1]) if raw.shape[1] > 1 else float(raw.iloc[0, 0])
-        else:
-            proba = float(raw[0]) if raw.ndim == 1 else float(raw[0, 1])
+        # The pyfunc wrapper's predict() returns class labels (0/1), not probabilities.
+        # Access the native LGBMClassifier via _model_impl.lgb_model and call
+        # predict_proba to get the actual fraud probability.
+        lgb = model._model_impl.lgb_model
+        proba = float(lgb.predict_proba(row_df)[:, 1][0])
         is_fraud = int(proba >= 0.5)
     else:
         # IsolationForest pyfunc returns 1 (normal) or -1 (anomaly)
+        raw = model.predict(row_df)
         raw_val = int(raw[0]) if hasattr(raw, "__len__") else int(raw)
         is_fraud = 1 if raw_val == -1 else 0
         proba = None

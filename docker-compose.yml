@@ -23,6 +23,9 @@ services:
     ports:
       - "${MLFLOW_PORT}:${MLFLOW_PORT}"
     environment:
+      MLFLOW_PORT: ${MLFLOW_PORT}
+      MLFLOW_BACKEND_STORE_URI: ${MLFLOW_BACKEND_STORE_URI}
+      MLFLOW_ARTIFACTS_DESTINATION: ${MLFLOW_ARTIFACTS_DESTINATION}
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
       MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
@@ -50,6 +53,12 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      MLFLOW_S3_BUCKET: ${MLFLOW_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      S3_EXPECTED_BUCKET_OWNER: ${S3_EXPECTED_BUCKET_OWNER:-000000000000}
       AIRFLOW_UID: ${AIRFLOW_UID}
       AIRFLOW__METRICS__STATSD_ON: "True"
       AIRFLOW__METRICS__STATSD_HOST: statsd-exporter
@@ -59,6 +68,7 @@ services:
       - ../creditcard.csv:/opt/airflow/data:ro
       - ./airflow/dags:/opt/airflow/dags
       - ./artifacts:/opt/airflow/artifacts
+      - ./tests:/opt/airflow/tests:ro
     ports:
       - "${AIRFLOW_PORT}:8080"
     command:
@@ -103,8 +113,14 @@ services:
     restart: unless-stopped
     environment:
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      AWS_S3_FORCE_PATH_STYLE: "true"
     volumes:
       - ./artifacts:/artifacts
+      - ./tests:/app/tests:ro
     ports:
       - "${API_PORT}:8000"
     healthcheck:
@@ -115,6 +131,26 @@ services:
       start_period: 15s
     depends_on:
       mlflow:
+        condition: service_healthy
+
+  webapp:
+    build:
+      context: ./webapp
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:8000
+    volumes:
+      - ./webapp/assets:/app/assets:ro
+    ports:
+      - "${WEBAPP_PORT:-8501}:8501"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    depends_on:
+      api:
         condition: service_healthy
 
   pgadmin:
@@ -233,6 +269,17 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
 
+  locust:
+    image: locustio/locust:latest
+    restart: unless-stopped
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./load_tests:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --host=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy    
 volumes:
   postgres_data:
   pgadmin_data:

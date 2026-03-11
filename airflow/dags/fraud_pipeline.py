@@ -27,12 +27,65 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 def ingest_and_preprocess() -> None:
     """Load the raw CSV, scale Amount, split into train/test parquet files."""
+    import hashlib
     import joblib
+    import os
+
+    import boto3
     import pandas as pd
+    from botocore.exceptions import ClientError
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import StandardScaler
 
     SPLITS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Upload raw dataset to S3 only when file content changes.
+    sha256 = hashlib.sha256()
+    with CSV_PATH.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            sha256.update(chunk)
+    dataset_sha256 = sha256.hexdigest()
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=os.environ["MLFLOW_S3_ENDPOINT_URL"],
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        region_name=os.environ["AWS_DEFAULT_REGION"],
+    )
+
+    bucket = os.environ.get("MLFLOW_S3_BUCKET", "mlflow")
+    bucket_owner = os.environ.get("S3_EXPECTED_BUCKET_OWNER", "000000000000")
+    dataset_key = "datasets/creditcard.csv"
+    hash_key = "datasets/creditcard.csv.sha256"
+
+    existing_sha256 = None
+    try:
+        hash_obj = s3.get_object(Bucket=bucket, Key=hash_key, ExpectedBucketOwner=bucket_owner)
+        existing_sha256 = hash_obj["Body"].read().decode("utf-8").strip()
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code")
+        if error_code not in {"NoSuchKey", "404"}:
+            raise
+
+    already_uploaded = existing_sha256 == dataset_sha256
+
+    if already_uploaded:
+        print("Dataset unchanged (same SHA256), skipping S3 upload.")
+    else:
+        s3.upload_file(
+            str(CSV_PATH),
+            bucket,
+            dataset_key,
+            ExtraArgs={"ExpectedBucketOwner": bucket_owner},
+        )
+        s3.put_object(
+            Bucket=bucket,
+            Key=hash_key,
+            Body=dataset_sha256.encode("utf-8"),
+            ExpectedBucketOwner=bucket_owner,
+        )
+        print("Dataset changed, uploaded new version to S3 bucket.")
 
     # Load dataset
     df = pd.read_csv(CSV_PATH)

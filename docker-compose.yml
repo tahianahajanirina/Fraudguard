@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:14-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,12 +19,19 @@ services:
   mlflow:
     build:
       context: ./mlflow
+    restart: unless-stopped
     ports:
-      - "5000:5000"
-    volumes:
-      - mlflow_artifacts:/mlflow/artifacts
+      - "${MLFLOW_PORT}:${MLFLOW_PORT}"
     environment:
+      MLFLOW_PORT: ${MLFLOW_PORT}
+      MLFLOW_BACKEND_STORE_URI: ${MLFLOW_BACKEND_STORE_URI}
+      MLFLOW_ARTIFACTS_DESTINATION: ${MLFLOW_ARTIFACTS_DESTINATION}
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      AWS_S3_FORCE_PATH_STYLE: "true"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\""]
       interval: 5s
@@ -33,40 +41,59 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      localstack-init:
+        condition: service_completed_successfully
 
   airflow:
     build:
       context: ./airflow
+    restart: unless-stopped
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      MLFLOW_S3_BUCKET: ${MLFLOW_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      S3_EXPECTED_BUCKET_OWNER: ${S3_EXPECTED_BUCKET_OWNER:-000000000000}
       AIRFLOW_UID: ${AIRFLOW_UID}
     volumes:
       - ../creditcard.csv:/opt/airflow/data:ro
       - ./airflow/dags:/opt/airflow/dags
       - ./artifacts:/opt/airflow/artifacts
     ports:
-      - "8080:8080"
+      - "${AIRFLOW_PORT}:8080"
     command:
       - bash
       - -c
       - |
-        airflow db migrate &&
-        (airflow users create \
-          --username admin --password admin \
-          --firstname Admin --lastname User \
-          --role Admin --email admin@fraudguard.ai \
-          2>/dev/null || true) &&
-        { airflow webserver & } &&
-        airflow scheduler
+        set -e
+        echo "[airflow] Initializing metadata DB (first run) ..."
+        for i in $(seq 1 ${AIRFLOW_DB_INIT_MAX_RETRIES}); do
+          airflow db init && break
+          echo "[airflow] db init failed, retrying in ${AIRFLOW_DB_INIT_RETRY_DELAY}s ($$i/${AIRFLOW_DB_INIT_MAX_RETRIES})"
+          sleep ${AIRFLOW_DB_INIT_RETRY_DELAY}
+        done
+
+        echo "[airflow] Ensuring admin user exists ..."
+        airflow users create \
+          --username ${AIRFLOW_ADMIN_USERNAME} --password ${AIRFLOW_ADMIN_PASSWORD} \
+          --firstname ${AIRFLOW_ADMIN_FIRSTNAME} --lastname ${AIRFLOW_ADMIN_LASTNAME} \
+          --role ${AIRFLOW_ADMIN_ROLE} --email ${AIRFLOW_ADMIN_EMAIL} \
+          2>/dev/null || true
+
+        echo "[airflow] Starting scheduler + webserver ..."
+        airflow scheduler &
+        exec airflow webserver
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 30s
+      start_period: 30s    
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,12 +103,13 @@ services:
   api:
     build:
       context: ./api
+    restart: unless-stopped
     environment:
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
     volumes:
       - ./artifacts:/artifacts
     ports:
-      - "8000:8000"
+      - "${API_PORT}:8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
       interval: 5s
@@ -95,12 +123,13 @@ services:
   webapp:
     build:
       context: ./webapp
+    restart: unless-stopped
     environment:
       API_URL: http://api:8000
     volumes:
       - ./webapp/assets:/app/assets:ro
     ports:
-      - "8501:8501"
+      - "${WEBAPP_PORT:-8501}:8501"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')\""]
       interval: 10s
@@ -111,6 +140,54 @@ services:
       api:
         condition: service_healthy
 
+  pgadmin:
+    image: dpage/pgadmin4:8
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
+    ports:
+      - "${PGADMIN_PORT}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  localstack:
+    image: localstack/localstack:3
+    restart: unless-stopped
+    environment:
+      SERVICES: s3
+      DEBUG: 0
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+    ports:
+      - "${LOCALSTACK_PORT}:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+
+  localstack-init:
+    image: amazon/aws-cli:latest
+    restart: "no"
+    depends_on:
+      localstack:
+        condition: service_started
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        until aws --endpoint-url=http://localstack:4566 s3 ls >/dev/null 2>&1; do
+          echo "waiting for localstack..."
+          sleep 2
+        done
+        aws --endpoint-url=http://localstack:4566 s3 mb s3://${MLFLOW_S3_BUCKET} || true
+        echo "localstack bucket ready: ${MLFLOW_S3_BUCKET}"
 volumes:
   postgres_data:
-  mlflow_artifacts:
+  pgadmin_data:
+  localstack_data:

@@ -41,7 +41,7 @@ Les profs ont été clairs : la performance du modèle n'est pas le sujet. Ce qu
 | 6 | API FastAPI | ✅ Fait | /predict, /predict_batch, /health, /model_metrics |
 | 7 | WebApp Streamlit | ✅ Fait | Dashboard, prédiction, batch, métriques modèle |
 | 8 | Continuous Training (CT) | ✅ Fait | DAG `fraud_retraining_ct` (@daily) |
-| 9 | Dockerisation | ✅ Fait | 8 services Docker Compose |
+| 9 | Dockerisation | ✅ Fait | 9 services Docker Compose |
 | 10 | Versionning GitHub | ✅ Fait | Repo structuré, README, CLAUDE.md |
 | — | Tests pytest | ✅ Fait | 4 fichiers de tests + conftest.py |
 | — | Makefile | ✅ Fait | Targets test, lint, format, up, down |
@@ -51,7 +51,7 @@ Les profs ont été clairs : la performance du modèle n'est pas le sujet. Ce qu
 | 9p3 | CI/CD GitHub Actions | ❌ À faire | Aucun workflow `.github/workflows/` |
 | 12 | Monitoring Prometheus/Grafana | ❌ À faire | Pas d'endpoint `/metrics`, pas de service prometheus/grafana |
 | 11 | 🌟 Données en live | ❌ À faire | Bonus |
-| 13 | 🌟 Tests de charge (Locust) | ❌ À faire | Bonus |
+| 13 | 🌟 Tests de charge (Locust) | ✅ Fait | Service Locust (port 8089) + 3 scénarios |
 | 14 | 🌟 Rollback modèles | ❌ À faire | Bonus |
 | 15 | 🌟 Human in the loop | ❌ À faire | Bonus |
 | 16 | 🌟 Gestion accès API | ❌ À faire | Bonus |
@@ -94,6 +94,8 @@ Fraudguard/
 │   ├── components/                      ← Composants réutilisables (header, sidebar, charts, formulaire)
 │   ├── styles/                          ← Thème CSS
 │   └── assets/                          ← Logos
+├── load_tests/
+│   └── locustfile.py                  ← Tests de charge Locust (3 scénarios)
 ├── tests/                               ← Tests pytest
 │   ├── conftest.py
 │   ├── test_api.py
@@ -105,7 +107,7 @@ Fraudguard/
 │   ├── architecture.drawio
 │   └── architecture.png
 ├── artifacts/                           ← Artefacts locaux (gitignored)
-├── docker-compose.yml                   ← 8 services Docker
+├── docker-compose.yml                   ← 9 services Docker
 ├── init-db.sql                          ← Script SQL pour la base MLflow
 ├── Makefile                             ← Raccourcis : make test, lint, format, up, down
 ├── pyproject.toml                       ← Configuration ruff
@@ -117,7 +119,7 @@ Fraudguard/
 
 ### 2.2 Services Docker Compose
 
-Docker Compose lance **8 services** (= 8 conteneurs) qui communiquent entre eux :
+Docker Compose lance **9 services** (= 9 conteneurs) qui communiquent entre eux :
 
 **`postgres`** (postgres:14-alpine) — port 5432 (interne, pas exposé)
 Base de données partagée : stocke les métadonnées d'Airflow (état des DAGs) et de MLflow (expériences, métriques).
@@ -142,6 +144,9 @@ Interface web d'administration pour PostgreSQL. Permet de visualiser les bases A
 
 **`localstack-init`** (conteneur éphémère)
 Initialise le bucket S3 sur LocalStack au démarrage, puis s'arrête.
+
+**`locust`** (locustio/locust:latest) — port 8089
+Tests de montée en charge. Interface web pour simuler des utilisateurs concurrents sur l'API. 3 scénarios : transactions normales (×3), transactions suspectes (×1), health check (×1). Wait time : 0.5-2s entre requêtes.
 
 ### 2.3 DAG existant : `fraud_detection_pipeline`
 
@@ -196,6 +201,21 @@ L'API est le point d'accès pour les utilisateurs et applications qui veulent sa
 8. **Pas de monitoring** — L'API n'expose pas de métriques pour Prometheus, pas de dashboard Grafana.
 9. **~~Artefacts en volume Docker local~~** ✅ — Résolu. Les artefacts MLflow sont maintenant stockés sur **LocalStack S3** (émulateur AWS local), accessible depuis tous les services. Le bucket est initialisé automatiquement par le service `localstack-init`.
 10. **~~MLflow installait ses deps au démarrage~~** ✅ — Résolu. `mlflow/Dockerfile` pré-installe les dépendances au build, `start_period` du healthcheck réduit de 120s à 10s.
+
+### 2.6 Tests de charge Locust
+
+Le service Locust (`load_tests/locustfile.py`) permet de tester la montée en charge de l'API FastAPI. Interface web accessible sur http://localhost:8089.
+
+**3 scénarios avec pondération :**
+- `predict_normal` (poids ×3) : envoie une transaction normale sur `/predict`
+- `predict_fraud` (poids ×1) : envoie une transaction suspecte sur `/predict`
+- `health_check` (poids ×1) : vérifie la disponibilité via `/health`
+
+**Données de test :**
+- `NORMAL_TRANSACTION` : valeurs V1-V28 + Amount typiques d'une transaction légitime
+- `FRAUD_TRANSACTION` : valeurs V1-V28 + Amount typiques d'une transaction frauduleuse
+
+**Configuration :** wait_time entre 0.5s et 2s entre chaque requête par utilisateur simulé. Le service dépend de l'API (healthcheck).
 
 ---
 
@@ -353,25 +373,67 @@ L'endpoint `/metrics` n'existe pas encore dans le code d'Ahmed — c'est à ajou
 
 ## 4. Architecture cible
 
+```
+Flux de données global :
+
+creditcard.csv
+      │
+      ▼
+  Airflow ──────► S3 (LocalStack)    MLflow
+  (DAG 1)        parquet + scaler    (registry)
+      │                │                 │
+      └── train ──────►└── modèle ──────►│
+                                         │
+                        Production model │
+                              │          │
+                              ▼          │
+  Utilisateur ──► Webapp ──► API ◄───────┘
+                  :8501      :8000
+                              ▲
+                              │
+                           Locust
+                           :8089
+```
+
 ### 4.1 Services Docker Compose (environnement de développement)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────┐
-│                           docker-compose.yml (DEV) — 8 services                      │
-├──────────┬────────┬─────────┬───────┬─────────┬─────────┬────────────┬──────────────┤
-│ postgres │ mlflow │ airflow │  api  │ webapp  │ pgadmin │ localstack │ localstack   │
-│ :5432    │ :5000  │ :8080   │ :8000 │ :8501   │ :5051   │ :4566      │ -init        │
-│ ✅ FAIT  │ ✅ FAIT│ ✅ FAIT │✅ FAIT│ ✅ FAIT │ ✅ FAIT │ ✅ FAIT    │ ✅ FAIT      │
-└──────────┴────────┴─────────┴───────┴─────────┴─────────┴────────────┴──────────────┘
-                                                              │
-                                                              ▼
-                                                      ┌──────────────┐
-                                                      │ LocalStack S3│ ← stockage local
-                                                      │ (émulateur   │   des artefacts MLflow
-                                                      │  AWS)        │   (modèles, scaler, etc.)
-                                                      └──────────────┘
-
-❌ À FAIRE : prometheus (:9090) + grafana (:3000) — monitoring de l'API
+┌───────────────────────────────────────────────────────────────────┐
+│              docker-compose.yml  —  9 services                    │
+│                                                                   │
+│  ┌────────────┐           ┌─────────────┐                         │
+│  │  postgres   │◄──────────│   pgadmin    │                        │
+│  │   :5432     │           │   :5051      │                        │
+│  └─────┬──────┘           └─────────────┘                         │
+│        │                                                          │
+│        │  ┌─────────────┐   ┌─────────────────┐                   │
+│        │  │ localstack   │──►│ localstack-init  │                   │
+│        │  │   :4566      │   │ (crée bucket S3) │                   │
+│        │  └──────┬──────┘   └────────┬────────┘                   │
+│        │         │                   │                             │
+│        ▼         ▼                   ▼                             │
+│  ┌──────────────────────────────────────┐                         │
+│  │              mlflow                   │                         │
+│  │              :5000                    │                         │
+│  │  metadata: postgres │ artifacts: S3   │                         │
+│  └───────┬──────────────────┬───────────┘                         │
+│          │                  │                                      │
+│    ┌─────┘                  └──────┐                               │
+│    ▼                               ▼                               │
+│ ┌──────────┐                ┌──────────┐                          │
+│ │ airflow   │                │   api     │                          │
+│ │  :8080    │                │  :8000    │                          │
+│ └──────────┘                └────┬─────┘                          │
+│                                  │                                 │
+│                            ┌─────┴──────┐                          │
+│                            ▼            ▼                          │
+│                      ┌──────────┐ ┌──────────┐                    │
+│                      │  webapp   │ │  locust   │                    │
+│                      │  :8501    │ │  :8089    │                    │
+│                      └──────────┘ └──────────┘                    │
+│                                                                   │
+│  ❌ À FAIRE : prometheus (:9090) + grafana (:3000)                │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 MLflow est configuré pour stocker les artefacts sur LocalStack S3 (émulateur AWS local). Le bucket est créé automatiquement par le service `localstack-init` au démarrage. Cela permet aux modèles de persister indépendamment des conteneurs et d'être accessibles depuis tous les services.
@@ -379,20 +441,48 @@ MLflow est configuré pour stocker les artefacts sur LocalStack S3 (émulateur A
 ### 4.2 DAGs Airflow (avec fréquences)
 
 ```
-DAG 1 : fraud_detection_pipeline (✅ EXISTANT — vérifié)
-    Fréquence : schedule=None (déclenché manuellement ou par le DAG CT), max_active_runs=1
-    Tâche 1 : ingestion + prétraitement des données
-    Tâche 2a : entraîner Isolation Forest     } en parallèle
-    Tâche 2b : entraîner LightGBM             }
-    Tâche 3 : comparer les deux, promouvoir le meilleur en Production
+DAG 1 : fraud_detection_pipeline  (schedule=None, max_active_runs=1)
 
-DAG 2 : fraud_retraining_ct (✅ CRÉÉ)
-    Fréquence : @daily (une fois par jour, léger), max_active_runs=1
-    Tâche 1 : check_model_performance — vérifie l'AUC-PR du modèle Production (via MLflow)
-    Tâche 2 : check_data_drift — vérifie le drift des données (via Isolation Forest en batch)
-    Tâche 3 : decide_retraining (BranchPythonOperator) — si dégradé ou drift détecté
-              → trigger_retraining (TriggerDagRunOperator sur DAG 1)
-              sinon → skip_retraining (log "tout va bien")
+  ┌───────────────────────────┐
+  │  ingest_and_preprocess     │
+  │  CSV → parquet + scaler    │
+  └────────────┬──────────────┘
+               │
+         ┌─────┴──────┐
+         ▼            ▼
+  ┌────────────┐ ┌────────────┐
+  │ train_      │ │ train_      │    ← en parallèle
+  │ isolation_  │ │ lightgbm    │
+  │ forest      │ │             │
+  └──────┬─────┘ └──────┬─────┘
+         └───────┬──────┘
+                 ▼
+  ┌───────────────────────────┐
+  │  register_best_model       │
+  │  compare AUC-PR → promote  │
+  │  winner → Production       │
+  └───────────────────────────┘
+```
+
+```
+DAG 2 : fraud_retraining_ct  (@daily, max_active_runs=1)
+
+  ┌──────────────────┐  ┌──────────────────┐
+  │ check_model_      │  │ check_data_       │    ← en parallèle
+  │ performance       │  │ drift             │
+  │ (AUC-PR < 0.7 ?) │  │ (anomalies > 5×?) │
+  └────────┬─────────┘  └────────┬─────────┘
+           └───────┬─────────────┘
+                   ▼
+       ┌───────────────────────┐
+       │   decide_retraining    │  (BranchPythonOperator)
+       └─────┬────────────┬────┘
+             ▼            ▼
+     ┌──────────────┐ ┌──────────────┐
+     │ trigger_      │ │ skip_         │
+     │ retraining    │ │ retraining    │
+     │ (→ DAG 1)    │ │ (log OK)      │
+     └──────────────┘ └──────────────┘
 ```
 
 ### 4.3 Cluster Kubernetes (environnement de production) — ❌ À FAIRE
@@ -420,13 +510,18 @@ CI = Continuous Integration (vérification automatique du code à chaque push)
 CD = Continuous Deployment (déploiement automatique quand le code est validé)
 
 ```
-Quand quelqu'un push du code ou ouvre une Pull Request :
-  → CI : vérifier le style du code (ruff) + lancer les tests (pytest)
-
-Quand du code est mergé dans la branche main :
-  → CD : construire les images Docker localement (docker build)
-       + déployer sur Kubernetes avec kubectl apply
-       (images locales, pas de registry — imagePullPolicy: Never)
+            push / PR                    merge → main
+                │                              │
+                ▼                              ▼
+         ┌────────────┐                ┌────────────────┐
+         │     CI      │                │       CD        │
+         │             │                │                 │
+         │ ruff check  │                │ docker build    │
+         │ pytest      │                │ kubectl apply   │
+         └────────────┘                └────────────────┘
+                                        (images locales,
+                                         imagePullPolicy:
+                                         Never)
 ```
 
 ### 4.5 Arborescence cible — état d'avancement
@@ -467,6 +562,8 @@ Fraudguard/
 │   ├── api-service.yaml
 │   ├── webapp-deployment.yaml
 │   └── webapp-service.yaml
+├── load_tests/                             ← ✅ FAIT
+│   └── locustfile.py                       ← ✅ FAIT (3 scénarios de charge)
 ├── monitoring/                             ← ❌ À FAIRE (bonus)
 │   └── prometheus.yml
 ├── tests/                                  ← ✅ FAIT
@@ -480,7 +577,7 @@ Fraudguard/
 │   ├── architecture.drawio                 ← ✅ FAIT
 │   └── architecture.png                    ← ✅ FAIT
 ├── artifacts/                              ← ✅ FAIT (gitignored)
-├── docker-compose.yml                      ← ✅ FAIT (8 services)
+├── docker-compose.yml                      ← ✅ FAIT (9 services)
 ├── .env / .env.example                     ← ✅ FAIT
 ├── init-db.sql                             ← ✅ FAIT
 ├── pyproject.toml                          ← ✅ FAIT

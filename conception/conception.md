@@ -119,7 +119,7 @@ L'API est le point d'accès pour les utilisateurs et applications qui veulent sa
 3. **L'API dépend de `best_model.txt`** — Ce fichier est créé par Airflow. Si on lance l'API sans avoir d'abord exécuté le DAG Airflow, elle démarre sans modèle (retourne 503 sur `/predict`).
 4. **Aucun test** — pytest est listé comme dépendance mais il n'y a aucun fichier de test.
 5. **Pas de WebApp** — L'objectif 7 (interface graphique) est complètement absent.
-6. **Pas de DAG de Continuous Training** — Il n'y a qu'un DAG (entraînement initial). Le réentraînement automatique (objectif 8) n'existe pas.
+6. **~~Pas de DAG de Continuous Training~~** ✅ — Résolu. Le DAG `fraud_retraining_ct` (@daily) vérifie la performance et le drift, et déclenche le réentraînement si nécessaire.
 7. **Pas de Kubernetes / CI/CD** — Aucun fichier de déploiement K8s, aucun workflow GitHub Actions.
 8. **Pas de monitoring** — L'API n'expose pas de métriques pour Prometheus, pas de dashboard Grafana.
 9. **Artefacts en volume Docker local** — Les modèles et le scaler sont stockés dans un volume Docker partagé entre Airflow et l'API. Il faut migrer vers **AWS S3** pour que les modèles soient accessibles depuis n'importe quel environnement (dev, K8s) et persister entre les redémarrages.
@@ -304,20 +304,20 @@ MLflow est configuré avec `--artifacts-destination s3://<bucket>/mlflow-artifac
 ### 4.2 DAGs Airflow (avec fréquences)
 
 ```
-DAG 1 : fraud_detection_pipeline (EXISTANT — à vérifier)
-    Fréquence : schedule=None (déclenché manuellement ou par le DAG CT)
+DAG 1 : fraud_detection_pipeline (✅ EXISTANT — vérifié)
+    Fréquence : schedule=None (déclenché manuellement ou par le DAG CT), max_active_runs=1
     Tâche 1 : ingestion + prétraitement des données
     Tâche 2a : entraîner Isolation Forest     } en parallèle
     Tâche 2b : entraîner LightGBM             }
     Tâche 3 : comparer les deux, promouvoir le meilleur en Production
 
-DAG 2 : fraud_retraining_ct (À CRÉER)
-    Fréquence : @daily (une fois par jour, léger)
-    Tâche 1 : vérifier les métriques du modèle en Production (via MLflow)
-    Tâche 2 : vérifier le drift des données (via Isolation Forest en batch)
-    Tâche 3 : si dégradé ou drift détecté → relancer le DAG 1
-              sinon → ne rien faire (log "tout va bien")
-    Tâche 4 : notification du résultat
+DAG 2 : fraud_retraining_ct (✅ CRÉÉ)
+    Fréquence : @daily (une fois par jour, léger), max_active_runs=1
+    Tâche 1 : check_model_performance — vérifie l'AUC-PR du modèle Production (via MLflow)
+    Tâche 2 : check_data_drift — vérifie le drift des données (via Isolation Forest en batch)
+    Tâche 3 : decide_retraining (BranchPythonOperator) — si dégradé ou drift détecté
+              → trigger_retraining (TriggerDagRunOperator sur DAG 1)
+              sinon → skip_retraining (log "tout va bien")
 ```
 
 ### 4.3 Cluster Kubernetes (environnement de production)
@@ -365,7 +365,7 @@ Fraudguard/
 ├── airflow/
 │   ├── dags/
 │   │   ├── fraud_pipeline.py               ← EXISTANT (à vérifier)
-│   │   └── fraud_retraining_ct.py          ← À CRÉER
+│   │   └── fraud_retraining_ct.py          ← ✅ CRÉÉ
 │   ├── Dockerfile                          ← EXISTANT (à vérifier)
 │   ├── pyproject.toml                      ← EXISTANT
 │   └── uv.lock                             ← EXISTANT

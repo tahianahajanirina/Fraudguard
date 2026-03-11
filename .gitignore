@@ -9,6 +9,8 @@ mlflow_artifacts/
 creditcard.csv/
 artifacts/
 .env
+IMPLEMENTATION.md
 .DS_Store
 Thumbs.db
 CLAUDE.md
+.claude

@@ -11,7 +11,8 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock* ./
 
-RUN uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-install-project && \
+    uv pip install "pytest>=7,<8" "httpx>=0.27,<1"
 
 COPY main.py .
 

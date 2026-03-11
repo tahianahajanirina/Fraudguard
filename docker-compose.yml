@@ -64,6 +64,7 @@ services:
       - ../creditcard.csv:/opt/airflow/data:ro
       - ./airflow/dags:/opt/airflow/dags
       - ./artifacts:/opt/airflow/artifacts
+      - ./tests:/opt/airflow/tests:ro
     ports:
       - "${AIRFLOW_PORT}:8080"
     command:
@@ -108,6 +109,7 @@ services:
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
     volumes:
       - ./artifacts:/artifacts
+      - ./tests:/app/tests:ro
     ports:
       - "${API_PORT}:8000"
     healthcheck:

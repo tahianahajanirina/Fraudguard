@@ -1,6 +1,6 @@
 # FraudGuard
 
-> POC MLOps pipeline for credit card fraud detection.
+> POC MLOps pipeline for credit card fraud detection Project.
 
 **Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris**
 
@@ -225,3 +225,4 @@ docker-compose down -v
 ```
 
 This removes all containers and named volumes (Postgres data, MLflow artifacts, processed splits).
+

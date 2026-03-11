@@ -24,6 +24,7 @@ RUN uv pip install --system \
     "lightgbm>=4.3,<5" \
     "scikit-learn>=1.4,<2" \
     "mlflow>=2.11,<3" \
+    "boto3>=1.34,<2" \
     "pandas>=2.2,<3" \
     "imbalanced-learn>=0.12,<1" \
     "joblib>=1.3,<2" \

@@ -45,6 +45,8 @@ Fraudguard/
 │   ├── Dockerfile                   ← Image Docker pour l'API
 │   ├── pyproject.toml
 │   └── uv.lock
+├── mlflow/
+│   └── Dockerfile                   ← Image Docker pour MLflow (deps pré-installées au build)
 ├── docker-compose.yml               ← Lance les 4 services ensemble
 ├── init-db.sql                      ← Script SQL qui crée la base de données pour MLflow
 ├── pyproject.toml                   ← Configuration du linter ruff
@@ -60,8 +62,8 @@ Docker Compose lance 4 services (= 4 conteneurs) qui communiquent entre eux :
 **`postgres`** (postgres:14-alpine) — port 5432 (interne, pas exposé)
 Base de données partagée : stocke les métadonnées d'Airflow (état des DAGs) et de MLflow (expériences, métriques).
 
-**`mlflow`** (python:3.11-slim) — port 5000
-Serveur MLflow : interface web pour voir les expériences + registre de modèles (= l'endroit où sont stockés les modèles entraînés avec leur version).
+**`mlflow`** (Dockerfile dédié : `mlflow/Dockerfile`) — port 5000
+Serveur MLflow : interface web pour voir les expériences + registre de modèles (= l'endroit où sont stockés les modèles entraînés avec leur version). Les dépendances (mlflow, psycopg2-binary) sont pré-installées au build via uv, ce qui réduit le temps de démarrage de ~60s à quelques secondes.
 
 **`airflow`** (apache/airflow:2.8.1) — port 8080
 Orchestrateur : exécute les pipelines (DAGs) automatiquement. Interface web pour les surveiller. Login : admin/admin.
@@ -112,15 +114,16 @@ L'API est le point d'accès pour les utilisateurs et applications qui veulent sa
 
 ### 2.5 Problèmes identifiés
 
-1. **`.env` manquant** — Le fichier `docker-compose.yml` référence des variables comme `${POSTGRES_USER}` mais le fichier `.env` qui définit ces variables n'est pas dans le repo. **C'est bloquant : rien ne démarre sans ce fichier.**
+1. **~~`.env` manquant~~** ✅ — Résolu. Le fichier `.env.example` existe et `.env` est dans `.gitignore`.
 2. **CSV monté depuis `../creditcard.csv`** — Le chemin suppose que le fichier CSV est dans un dossier au-dessus du projet. Fragile, ne marchera que sur la machine d'Ahmed.
-3. **L'API dépend de `best_model.txt`** — Ce fichier est créé par Airflow. Si on lance l'API sans avoir d'abord exécuté le DAG Airflow, elle démarre sans modèle.
+3. **L'API dépend de `best_model.txt`** — Ce fichier est créé par Airflow. Si on lance l'API sans avoir d'abord exécuté le DAG Airflow, elle démarre sans modèle (retourne 503 sur `/predict`).
 4. **Aucun test** — pytest est listé comme dépendance mais il n'y a aucun fichier de test.
 5. **Pas de WebApp** — L'objectif 7 (interface graphique) est complètement absent.
-6. **Pas de DAG de Continuous Training** — Il n'y a qu'un DAG (entraînement initial). Le réentraînement automatique (objectif 8) n'existe pas.
+6. **~~Pas de DAG de Continuous Training~~** ✅ — Résolu. Le DAG `fraud_retraining_ct` (@daily) vérifie la performance et le drift, et déclenche le réentraînement si nécessaire.
 7. **Pas de Kubernetes / CI/CD** — Aucun fichier de déploiement K8s, aucun workflow GitHub Actions.
 8. **Pas de monitoring** — L'API n'expose pas de métriques pour Prometheus, pas de dashboard Grafana.
 9. **Artefacts en volume Docker local** — Les modèles et le scaler sont stockés dans un volume Docker partagé entre Airflow et l'API. Il faut migrer vers **AWS S3** pour que les modèles soient accessibles depuis n'importe quel environnement (dev, K8s) et persister entre les redémarrages.
+10. **~~MLflow installait ses deps au démarrage~~** ✅ — Résolu. `mlflow/Dockerfile` pré-installe les dépendances au build, `start_period` du healthcheck réduit de 120s à 10s.
 
 ---
 
@@ -301,20 +304,20 @@ MLflow est configuré avec `--artifacts-destination s3://<bucket>/mlflow-artifac
 ### 4.2 DAGs Airflow (avec fréquences)
 
 ```
-DAG 1 : fraud_detection_pipeline (EXISTANT — à vérifier)
-    Fréquence : schedule=None (déclenché manuellement ou par le DAG CT)
+DAG 1 : fraud_detection_pipeline (✅ EXISTANT — vérifié)
+    Fréquence : schedule=None (déclenché manuellement ou par le DAG CT), max_active_runs=1
     Tâche 1 : ingestion + prétraitement des données
     Tâche 2a : entraîner Isolation Forest     } en parallèle
     Tâche 2b : entraîner LightGBM             }
     Tâche 3 : comparer les deux, promouvoir le meilleur en Production
 
-DAG 2 : fraud_retraining_ct (À CRÉER)
-    Fréquence : @daily (une fois par jour, léger)
-    Tâche 1 : vérifier les métriques du modèle en Production (via MLflow)
-    Tâche 2 : vérifier le drift des données (via Isolation Forest en batch)
-    Tâche 3 : si dégradé ou drift détecté → relancer le DAG 1
-              sinon → ne rien faire (log "tout va bien")
-    Tâche 4 : notification du résultat
+DAG 2 : fraud_retraining_ct (✅ CRÉÉ)
+    Fréquence : @daily (une fois par jour, léger), max_active_runs=1
+    Tâche 1 : check_model_performance — vérifie l'AUC-PR du modèle Production (via MLflow)
+    Tâche 2 : check_data_drift — vérifie le drift des données (via Isolation Forest en batch)
+    Tâche 3 : decide_retraining (BranchPythonOperator) — si dégradé ou drift détecté
+              → trigger_retraining (TriggerDagRunOperator sur DAG 1)
+              sinon → skip_retraining (log "tout va bien")
 ```
 
 ### 4.3 Cluster Kubernetes (environnement de production)
@@ -362,7 +365,7 @@ Fraudguard/
 ├── airflow/
 │   ├── dags/
 │   │   ├── fraud_pipeline.py               ← EXISTANT (à vérifier)
-│   │   └── fraud_retraining_ct.py          ← À CRÉER
+│   │   └── fraud_retraining_ct.py          ← ✅ CRÉÉ
 │   ├── Dockerfile                          ← EXISTANT (à vérifier)
 │   ├── pyproject.toml                      ← EXISTANT
 │   └── uv.lock                             ← EXISTANT
@@ -371,6 +374,8 @@ Fraudguard/
 │   ├── Dockerfile                          ← EXISTANT (à vérifier)
 │   ├── pyproject.toml                      ← EXISTANT (ajouter la dépendance prometheus_client)
 │   └── uv.lock                             ← EXISTANT
+├── mlflow/
+│   └── Dockerfile                          ← ✅ CRÉÉ (deps pré-installées au build)
 ├── webapp/                                 ← À CRÉER (dossier complet)
 │   ├── app.py
 │   ├── Dockerfile

@@ -10,26 +10,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} && psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'SELECT 1' && psql -U mlflow -d mlflow_db -c 'SELECT 1'"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
 
   mlflow:
-    image: python:3.11-slim
+    build:
+      context: ./mlflow
     restart: unless-stopped
-    command:
-      - sh
-      - -c
-      - |
-        pip install uv --quiet &&
-        uv pip install --system 'mlflow>=2.11,<3' psycopg2-binary boto3 &&
-        mlflow server \
-          --backend-store-uri ${MLFLOW_BACKEND_STORE_URI} \
-          --artifacts-destination ${MLFLOW_ARTIFACTS_DESTINATION} \
-          --serve-artifacts \
-          --host 0.0.0.0 \
-          --port ${MLFLOW_PORT}
     ports:
       - "${MLFLOW_PORT}:${MLFLOW_PORT}"
     environment:
@@ -39,6 +29,12 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
       AWS_S3_FORCE_PATH_STYLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/health')\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,11 +79,17 @@ services:
         echo "[airflow] Starting scheduler + webserver ..."
         airflow scheduler &
         exec airflow webserver
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s    
     depends_on:
       postgres:
         condition: service_healthy
       mlflow:
-        condition: service_started
+        condition: service_healthy
 
   api:
     build:
@@ -99,9 +101,15 @@ services:
       - ./artifacts:/artifacts
     ports:
       - "${API_PORT}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     depends_on:
       mlflow:
-        condition: service_started
+        condition: service_healthy
 
   pgadmin:
     image: dpage/pgadmin4:8

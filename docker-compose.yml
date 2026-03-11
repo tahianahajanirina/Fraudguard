@@ -189,6 +189,18 @@ services:
         done
         aws --endpoint-url=http://localstack:4566 s3 mb s3://${MLFLOW_S3_BUCKET} || true
         echo "localstack bucket ready: ${MLFLOW_S3_BUCKET}"
+
+  locust:
+    image: locustio/locust:latest
+    restart: unless-stopped
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./load_tests:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --host=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy    
 volumes:
   postgres_data:
   pgadmin_data:

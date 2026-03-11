@@ -24,7 +24,7 @@ class TestPredictSingle:
     def test_lightgbm_fraud(self, row_df):
         """High fraud probability → is_fraud=1, risk=HIGH."""
         model = MagicMock()
-        model.predict.return_value = np.array([[0.1, 0.9]])
+        model._model_impl.lgb_model.predict_proba.return_value = np.array([[0.1, 0.9]])
         is_fraud, proba, risk = _predict_single(model, "lightgbm_fraud", row_df)
         assert is_fraud == 1
         assert proba == pytest.approx(0.9)
@@ -33,7 +33,7 @@ class TestPredictSingle:
     def test_lightgbm_normal(self, row_df):
         """Low fraud probability → is_fraud=0, risk=LOW."""
         model = MagicMock()
-        model.predict.return_value = np.array([[0.95, 0.05]])
+        model._model_impl.lgb_model.predict_proba.return_value = np.array([[0.95, 0.05]])
         is_fraud, proba, risk = _predict_single(model, "lightgbm_fraud", row_df)
         assert is_fraud == 0
         assert proba == pytest.approx(0.05)
@@ -42,7 +42,7 @@ class TestPredictSingle:
     def test_lightgbm_medium_risk(self, row_df):
         """Probability between 0.3 and 0.7 → risk=MEDIUM."""
         model = MagicMock()
-        model.predict.return_value = np.array([[0.5, 0.5]])
+        model._model_impl.lgb_model.predict_proba.return_value = np.array([[0.5, 0.5]])
         _, proba, risk = _predict_single(model, "lightgbm_fraud", row_df)
         assert proba == pytest.approx(0.5)
         assert risk == "MEDIUM"
@@ -67,15 +67,16 @@ class TestPredictSingle:
     def test_lightgbm_threshold_boundary(self, row_df):
         """Exactly 0.5 probability → is_fraud=1 (threshold is >=0.5)."""
         model = MagicMock()
-        model.predict.return_value = np.array([[0.5, 0.5]])
+        model._model_impl.lgb_model.predict_proba.return_value = np.array([[0.5, 0.5]])
         is_fraud, _, _ = _predict_single(model, "lightgbm_fraud", row_df)
         assert is_fraud == 1
 
-    def test_lightgbm_dataframe_output(self, row_df):
-        """pyfunc may return a DataFrame — verify iloc branch works."""
+    def test_lightgbm_predict_proba_used(self, row_df):
+        """_predict_single calls lgb_model.predict_proba, not pyfunc.predict."""
         model = MagicMock()
-        model.predict.return_value = pd.DataFrame([[0.1, 0.9]])
+        model._model_impl.lgb_model.predict_proba.return_value = np.array([[0.1, 0.9]])
         is_fraud, proba, risk = _predict_single(model, "lightgbm_fraud", row_df)
+        model._model_impl.lgb_model.predict_proba.assert_called_once_with(row_df)
         assert is_fraud == 1
         assert proba == pytest.approx(0.9)
         assert risk == "HIGH"
@@ -106,7 +107,7 @@ class TestPredictEndpoint:
     def test_predict_with_model_returns_fraud_result(self):
         """POST /predict with mocked model+scaler → 200 with expected keys."""
         mock_model = MagicMock()
-        mock_model.predict.return_value = np.array([[0.2, 0.8]])
+        mock_model._model_impl.lgb_model.predict_proba.return_value = np.array([[0.2, 0.8]])
 
         mock_scaler = MagicMock()
         mock_scaler.transform.return_value = np.array([[0.0]])

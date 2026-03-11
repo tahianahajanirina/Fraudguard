@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraudguard-api
+  labels:
+    app: fraudguard-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fraudguard-api
+  template:
+    metadata:
+      labels:
+        app: fraudguard-api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: fraudguard-api
+          image: ghcr.io/REPLACE_ME/fraudguard-api:sha-0000000
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: fraudguard-api-config
+          env:
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://localstack:4566
+            - name: AWS_ACCESS_KEY_ID
+              value: test
+            - name: AWS_SECRET_ACCESS_KEY
+              value: test
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+            - name: AWS_S3_FORCE_PATH_STYLE
+              value: "true"
+          volumeMounts:
+            - name: shared-artifacts
+              mountPath: /artifacts
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+              ephemeral-storage: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: shared-artifacts
+          persistentVolumeClaim:
+            claimName: shared-artifacts

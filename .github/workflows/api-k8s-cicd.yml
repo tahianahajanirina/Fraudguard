@@ -1,0 +1,248 @@
+name: FraudGuard Stack CI/CD to Local Kubernetes
+
+on:
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "api/**"
+      - "airflow/**"
+      - "mlflow/**"
+      - "webapp/**"
+      - "k8s/platform/**"
+      - "k8s/api/**"
+      - "k8s/overlays/**"
+      - ".github/workflows/api-k8s-cicd.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.repository_owner }}
+  API_IMAGE: fraudguard-api
+  AIRFLOW_IMAGE: fraudguard-airflow
+  MLFLOW_IMAGE: fraudguard-mlflow
+  WEBAPP_IMAGE: fraudguard-webapp
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lowercase image owner
+        run: echo "IMAGE_OWNER_LC=${IMAGE_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.API_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.API_IMAGE }}:latest
+
+      - name: Build and push Airflow image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./airflow
+          file: ./airflow/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.AIRFLOW_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.AIRFLOW_IMAGE }}:latest
+
+      - name: Build and push MLflow image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./mlflow
+          file: ./mlflow/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.MLFLOW_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.MLFLOW_IMAGE }}:latest
+
+      - name: Build and push Webapp image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./webapp
+          file: ./webapp/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.WEBAPP_IMAGE }}:sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER_LC }}/${{ env.WEBAPP_IMAGE }}:latest
+
+  deploy-local-k8s:
+    runs-on: self-hosted
+    needs: build-and-push
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lowercase image owner
+        run: echo "IMAGE_OWNER_LC=${IMAGE_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Resolve target environment
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref_name }}" = "main" ]; then
+            ENVIRONMENT="prod"
+          else
+            ENVIRONMENT="dev"
+          fi
+          echo "TARGET_ENV=${ENVIRONMENT}" >> "$GITHUB_ENV"
+          echo "TARGET_NAMESPACE=fraudguard-${ENVIRONMENT}" >> "$GITHUB_ENV"
+
+      - name: Select kube context
+        run: |
+          if [ -n "${KUBE_CONTEXT}" ]; then
+            kubectl config use-context "${KUBE_CONTEXT}"
+          fi
+        env:
+          KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
+
+      - name: Ensure namespace exists
+        run: |
+          kubectl create namespace ${TARGET_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Upsert platform secrets
+        run: |
+          EFFECTIVE_POSTGRES_USER="${POSTGRES_USER:-airflow}"
+          EFFECTIVE_POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-airflow}"
+          EFFECTIVE_POSTGRES_DB="${POSTGRES_DB:-airflow}"
+          EFFECTIVE_MLFLOW_DB_USER="${MLFLOW_DB_USER:-mlflow}"
+          EFFECTIVE_MLFLOW_DB_PASSWORD="${MLFLOW_DB_PASSWORD:-mlflow}"
+          EFFECTIVE_MLFLOW_DB_NAME="${MLFLOW_DB_NAME:-mlflow_db}"
+
+          EFFECTIVE_MLFLOW_BACKEND_STORE_URI="${MLFLOW_BACKEND_STORE_URI}"
+          if [ -z "${EFFECTIVE_MLFLOW_BACKEND_STORE_URI}" ]; then
+            EFFECTIVE_MLFLOW_BACKEND_STORE_URI="postgresql://${EFFECTIVE_MLFLOW_DB_USER}:${EFFECTIVE_MLFLOW_DB_PASSWORD}@postgres/${EFFECTIVE_MLFLOW_DB_NAME}"
+          fi
+
+          EFFECTIVE_AIRFLOW_SQL_ALCHEMY_CONN="${AIRFLOW_SQL_ALCHEMY_CONN}"
+          if [ -z "${EFFECTIVE_AIRFLOW_SQL_ALCHEMY_CONN}" ]; then
+            EFFECTIVE_AIRFLOW_SQL_ALCHEMY_CONN="postgresql+psycopg2://${EFFECTIVE_POSTGRES_USER}:${EFFECTIVE_POSTGRES_PASSWORD}@postgres/${EFFECTIVE_POSTGRES_DB}"
+          fi
+
+          kubectl -n ${TARGET_NAMESPACE} create secret generic fraudguard-platform-secrets \
+            --from-literal=POSTGRES_USER="${EFFECTIVE_POSTGRES_USER}" \
+            --from-literal=POSTGRES_PASSWORD="${EFFECTIVE_POSTGRES_PASSWORD}" \
+            --from-literal=POSTGRES_DB="${EFFECTIVE_POSTGRES_DB}" \
+            --from-literal=MLFLOW_BACKEND_STORE_URI="${EFFECTIVE_MLFLOW_BACKEND_STORE_URI}" \
+            --from-literal=AIRFLOW_SQL_ALCHEMY_CONN="${EFFECTIVE_AIRFLOW_SQL_ALCHEMY_CONN}" \
+            --from-literal=AIRFLOW__WEBSERVER__SECRET_KEY="${AIRFLOW__WEBSERVER__SECRET_KEY:-change-me-use-a-random-string}" \
+            --from-literal=AIRFLOW_ADMIN_USERNAME="${AIRFLOW_ADMIN_USERNAME:-admin}" \
+            --from-literal=AIRFLOW_ADMIN_PASSWORD="${AIRFLOW_ADMIN_PASSWORD:-admin}" \
+            --from-literal=AIRFLOW_ADMIN_FIRSTNAME="${AIRFLOW_ADMIN_FIRSTNAME:-Admin}" \
+            --from-literal=AIRFLOW_ADMIN_LASTNAME="${AIRFLOW_ADMIN_LASTNAME:-User}" \
+            --from-literal=AIRFLOW_ADMIN_ROLE="${AIRFLOW_ADMIN_ROLE:-Admin}" \
+            --from-literal=AIRFLOW_ADMIN_EMAIL="${AIRFLOW_ADMIN_EMAIL:-admin@admin.ai}" \
+            --from-literal=AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-test}" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-test}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          MLFLOW_DB_USER: ${{ secrets.MLFLOW_DB_USER }}
+          MLFLOW_DB_PASSWORD: ${{ secrets.MLFLOW_DB_PASSWORD }}
+          MLFLOW_DB_NAME: ${{ secrets.MLFLOW_DB_NAME }}
+          MLFLOW_BACKEND_STORE_URI: ${{ secrets.MLFLOW_BACKEND_STORE_URI }}
+          AIRFLOW_SQL_ALCHEMY_CONN: ${{ secrets.AIRFLOW_SQL_ALCHEMY_CONN }}
+          AIRFLOW__WEBSERVER__SECRET_KEY: ${{ secrets.AIRFLOW__WEBSERVER__SECRET_KEY }}
+          AIRFLOW_ADMIN_USERNAME: ${{ secrets.AIRFLOW_ADMIN_USERNAME }}
+          AIRFLOW_ADMIN_PASSWORD: ${{ secrets.AIRFLOW_ADMIN_PASSWORD }}
+          AIRFLOW_ADMIN_FIRSTNAME: ${{ secrets.AIRFLOW_ADMIN_FIRSTNAME }}
+          AIRFLOW_ADMIN_LASTNAME: ${{ secrets.AIRFLOW_ADMIN_LASTNAME }}
+          AIRFLOW_ADMIN_ROLE: ${{ secrets.AIRFLOW_ADMIN_ROLE }}
+          AIRFLOW_ADMIN_EMAIL: ${{ secrets.AIRFLOW_ADMIN_EMAIL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Patch image placeholders
+        run: |
+          sed -i "s|ghcr.io/REPLACE_ME/fraudguard-api:sha-0000000|${REGISTRY}/${IMAGE_OWNER_LC}/${API_IMAGE}:sha-${GITHUB_SHA}|" k8s/api/deployment.yaml
+          sed -i "s|ghcr.io/REPLACE_ME/fraudguard-airflow:sha-0000000|${REGISTRY}/${IMAGE_OWNER_LC}/${AIRFLOW_IMAGE}:sha-${GITHUB_SHA}|" k8s/platform/airflow-web-deployment.yaml
+          sed -i "s|ghcr.io/REPLACE_ME/fraudguard-airflow:sha-0000000|${REGISTRY}/${IMAGE_OWNER_LC}/${AIRFLOW_IMAGE}:sha-${GITHUB_SHA}|" k8s/platform/airflow-scheduler-deployment.yaml
+          sed -i "s|ghcr.io/REPLACE_ME/fraudguard-mlflow:sha-0000000|${REGISTRY}/${IMAGE_OWNER_LC}/${MLFLOW_IMAGE}:sha-${GITHUB_SHA}|" k8s/platform/mlflow-deployment.yaml
+          sed -i "s|ghcr.io/REPLACE_ME/fraudguard-webapp:sha-0000000|${REGISTRY}/${IMAGE_OWNER_LC}/${WEBAPP_IMAGE}:sha-${GITHUB_SHA}|" k8s/platform/webapp-deployment.yaml
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -k k8s/overlays/${TARGET_ENV}
+
+      - name: Create GHCR pull secret (optional)
+        run: |
+          if [ -n "${GHCR_USERNAME}" ] && [ -n "${GHCR_PAT}" ]; then
+            kubectl -n ${TARGET_NAMESPACE} create secret docker-registry ghcr-pull-secret \
+              --docker-server=${REGISTRY} \
+              --docker-username=${GHCR_USERNAME} \
+              --docker-password=${GHCR_PAT} \
+              --dry-run=client -o yaml | kubectl apply -f -
+            kubectl -n ${TARGET_NAMESPACE} patch deployment fraudguard-api --type='merge' -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"ghcr-pull-secret"}]}}}}'
+          fi
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+
+      - name: Override MLflow URI for cluster (optional)
+        run: |
+          if [ -n "${MLFLOW_TRACKING_URI}" ]; then
+            kubectl -n ${TARGET_NAMESPACE} create configmap fraudguard-api-config \
+              --from-literal=MLFLOW_TRACKING_URI="${MLFLOW_TRACKING_URI}" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          fi
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+
+      - name: Set deployment image and wait rollout
+        run: |
+          kubectl -n ${TARGET_NAMESPACE} set image deployment/fraudguard-api \
+            fraudguard-api=${REGISTRY}/${IMAGE_OWNER_LC}/${API_IMAGE}:sha-${GITHUB_SHA}
+          kubectl -n ${TARGET_NAMESPACE} set image deployment/airflow-web \
+            airflow-web=${REGISTRY}/${IMAGE_OWNER_LC}/${AIRFLOW_IMAGE}:sha-${GITHUB_SHA}
+          kubectl -n ${TARGET_NAMESPACE} set image deployment/airflow-scheduler \
+            airflow-scheduler=${REGISTRY}/${IMAGE_OWNER_LC}/${AIRFLOW_IMAGE}:sha-${GITHUB_SHA}
+          kubectl -n ${TARGET_NAMESPACE} set image deployment/mlflow \
+            mlflow=${REGISTRY}/${IMAGE_OWNER_LC}/${MLFLOW_IMAGE}:sha-${GITHUB_SHA}
+          kubectl -n ${TARGET_NAMESPACE} set image deployment/webapp \
+            webapp=${REGISTRY}/${IMAGE_OWNER_LC}/${WEBAPP_IMAGE}:sha-${GITHUB_SHA}
+
+          kubectl -n ${TARGET_NAMESPACE} rollout status deployment/fraudguard-api --timeout=180s
+          kubectl -n ${TARGET_NAMESPACE} rollout status deployment/airflow-web --timeout=180s
+          kubectl -n ${TARGET_NAMESPACE} rollout status deployment/airflow-scheduler --timeout=180s
+          kubectl -n ${TARGET_NAMESPACE} rollout status deployment/mlflow --timeout=180s
+          kubectl -n ${TARGET_NAMESPACE} rollout status deployment/webapp --timeout=180s
+
+      - name: Show API endpoint instructions
+        run: |
+          echo "Deployment succeeded for environment: ${TARGET_ENV}"
+          echo "Use one of:"
+          echo "  kubectl -n ${TARGET_NAMESPACE} port-forward svc/fraudguard-api 8000:8000"
+          echo "  kubectl -n ${TARGET_NAMESPACE} get svc fraudguard-api"

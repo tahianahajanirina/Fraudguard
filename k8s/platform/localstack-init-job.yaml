@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: localstack-init
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: amazon/aws-cli:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until aws --endpoint-url=http://localstack:4566 s3 ls >/dev/null 2>&1; do
+                echo "waiting for localstack..."
+                sleep 2
+              done
+              aws --endpoint-url=http://localstack:4566 s3 mb s3://mlflow || true
+              aws --endpoint-url=http://localstack:4566 s3 mb s3://data || true
+              echo "localstack buckets ready: mlflow, data"
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: test
+            - name: AWS_SECRET_ACCESS_KEY
+              value: test
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1

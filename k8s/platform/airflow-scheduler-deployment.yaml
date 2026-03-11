@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow-scheduler
+    spec:
+      automountServiceAccountToken: false
+      initContainers:
+        - name: wait-postgres
+          image: postgres:14-alpine
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: POSTGRES_USER
+          command: ["sh", "-c", "until pg_isready -h postgres -U ${POSTGRES_USER}; do sleep 2; done"]
+        - name: wait-mlflow
+          image: curlimages/curl:8.11.1
+          command: ["sh", "-c", "until curl -sf http://mlflow:5000/health >/dev/null; do sleep 2; done"]
+        - name: copy-dags
+          image: busybox:1.36
+          command: ["sh", "-c", "cp /dags-cm/*.py /opt/airflow/dags/"]
+          volumeMounts:
+            - name: dags-cm
+              mountPath: /dags-cm
+            - name: dags
+              mountPath: /opt/airflow/dags
+      containers:
+        - name: airflow-scheduler
+          image: ghcr.io/REPLACE_ME/fraudguard-airflow:sha-0000000
+          imagePullPolicy: IfNotPresent
+          command: ["airflow", "scheduler"]
+          env:
+            - name: AIRFLOW__CORE__EXECUTOR
+              value: LocalExecutor
+            - name: AIRFLOW__CORE__HOSTNAME_CALLABLE
+              value: airflow.utils.net.get_host_ip_address
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: AIRFLOW_SQL_ALCHEMY_CONN
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://localstack:4566
+            - name: MLFLOW_S3_BUCKET
+              value: mlflow
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+            - name: S3_EXPECTED_BUCKET_OWNER
+              value: "000000000000"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+              ephemeral-storage: 1Gi
+          volumeMounts:
+            - name: dags
+              mountPath: /opt/airflow/dags
+            - name: shared-artifacts
+              mountPath: /opt/airflow/artifacts
+      volumes:
+        - name: dags-cm
+          configMap:
+            name: airflow-dags
+        - name: dags
+          emptyDir: {}
+        - name: shared-artifacts
+          persistentVolumeClaim:
+            claimName: shared-artifacts

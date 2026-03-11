@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: fraudguard-prod
+resources:
+  - ../../api
+  - ../../platform
+  - namespace.yaml
+  - secrets.yaml
+patches:
+  - path: deployment-patch.yaml
+images:
+  - name: ghcr.io/REPLACE_ME/fraudguard-api
+    newName: fraudguard-api
+    newTag: latest
+  - name: ghcr.io/REPLACE_ME/fraudguard-airflow
+    newName: fraudguard-airflow
+    newTag: latest
+  - name: ghcr.io/REPLACE_ME/fraudguard-mlflow
+    newName: fraudguard-mlflow
+    newTag: latest
+  - name: ghcr.io/REPLACE_ME/fraudguard-webapp
+    newName: fraudguard-webapp
+    newTag: latest
+configMapGenerator:
+  - name: fraudguard-api-config
+    behavior: replace
+    literals:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+generatorOptions:
+  disableNameSuffixHash: true

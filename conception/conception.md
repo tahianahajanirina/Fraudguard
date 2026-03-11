@@ -29,6 +29,36 @@ Les profs ont été clairs : la performance du modèle n'est pas le sujet. Ce qu
 
 ---
 
+## 1.5 Bilan : État d'avancement
+
+| # | Objectif | Statut | Détails |
+|---|----------|--------|---------|
+| 1 | Extraire et prétraiter les données | ✅ Fait | `ingest_and_preprocess` dans le DAG Airflow |
+| 2 | Construire un modèle ML | ✅ Fait | LightGBM + Isolation Forest |
+| 3 | Model Registry MLflow | ✅ Fait | Promotion Production/Staging automatique |
+| 4 | Pipeline Airflow | ✅ Fait | DAG `fraud_detection_pipeline` |
+| 5 | Tracking MLflow | ✅ Fait | Params, métriques, artefacts, matrice de confusion |
+| 6 | API FastAPI | ✅ Fait | /predict, /predict_batch, /health, /model_metrics |
+| 7 | WebApp Streamlit | ✅ Fait | Dashboard, prédiction, batch, métriques modèle |
+| 8 | Continuous Training (CT) | ✅ Fait | DAG `fraud_retraining_ct` (@daily) |
+| 9 | Dockerisation | ✅ Fait | 8 services Docker Compose |
+| 10 | Versionning GitHub | ✅ Fait | Repo structuré, README, CLAUDE.md |
+| — | Tests pytest | ✅ Fait | 4 fichiers de tests + conftest.py |
+| — | Makefile | ✅ Fait | Targets test, lint, format, up, down |
+| — | LocalStack S3 (artefacts) | ✅ Fait | Remplace volume Docker local |
+| — | pgAdmin | ✅ Fait | Administration PostgreSQL (port 5051) |
+| 9p2 | Déploiement Kubernetes | ❌ À faire | Aucun manifest `k8s/` |
+| 9p3 | CI/CD GitHub Actions | ❌ À faire | Aucun workflow `.github/workflows/` |
+| 12 | Monitoring Prometheus/Grafana | ❌ À faire | Pas d'endpoint `/metrics`, pas de service prometheus/grafana |
+| 11 | 🌟 Données en live | ❌ À faire | Bonus |
+| 13 | 🌟 Tests de charge (Locust) | ❌ À faire | Bonus |
+| 14 | 🌟 Rollback modèles | ❌ À faire | Bonus |
+| 15 | 🌟 Human in the loop | ❌ À faire | Bonus |
+| 16 | 🌟 Gestion accès API | ❌ À faire | Bonus |
+| 17 | 🌟 Alerting par mail | ❌ À faire | Bonus |
+
+---
+
 ## 2. Audit du repo existant
 
 ### 2.1 Arborescence actuelle
@@ -36,40 +66,82 @@ Les profs ont été clairs : la performance du modèle n'est pas le sujet. Ce qu
 Fraudguard/
 ├── airflow/
 │   ├── dags/
-│   │   └── fraud_pipeline.py       ← Le pipeline principal (ingestion → entraînement → enregistrement)
-│   ├── Dockerfile                   ← Image Docker pour Airflow + dépendances ML
+│   │   ├── fraud_pipeline.py            ← Pipeline principal (ingestion → entraînement → enregistrement)
+│   │   └── fraud_retraining_ct.py       ← DAG CT (@daily) : check perf + drift → trigger réentraînement
+│   ├── Dockerfile
 │   ├── pyproject.toml
 │   └── uv.lock
 ├── api/
-│   ├── main.py                      ← L'API FastAPI (endpoints /predict, /health, etc.)
-│   ├── Dockerfile                   ← Image Docker pour l'API
+│   ├── main.py                          ← API FastAPI (/predict, /predict_batch, /health, /model_metrics)
+│   ├── Dockerfile
 │   ├── pyproject.toml
 │   └── uv.lock
 ├── mlflow/
-│   └── Dockerfile                   ← Image Docker pour MLflow (deps pré-installées au build)
-├── docker-compose.yml               ← Lance les 4 services ensemble
-├── init-db.sql                      ← Script SQL qui crée la base de données pour MLflow
-├── pyproject.toml                   ← Configuration du linter ruff
+│   └── Dockerfile                       ← MLflow (deps pré-installées au build)
+├── webapp/                              ← Interface Streamlit complète
+│   ├── app.py                           ← Point d'entrée multi-pages
+│   ├── Dockerfile
+│   ├── pyproject.toml / uv.lock
+│   ├── config.py
+│   ├── api/                             ← Client HTTP vers l'API FastAPI
+│   │   ├── client.py
+│   │   └── models.py
+│   ├── pages/                           ← Pages Streamlit (dashboard, prédiction, batch, métriques)
+│   │   ├── dashboard.py
+│   │   ├── single_prediction.py
+│   │   ├── batch_analysis.py
+│   │   └── model_metrics.py
+│   ├── components/                      ← Composants réutilisables (header, sidebar, charts, formulaire)
+│   ├── styles/                          ← Thème CSS
+│   └── assets/                          ← Logos
+├── tests/                               ← Tests pytest
+│   ├── conftest.py
+│   ├── test_api.py
+│   ├── test_preprocessing.py
+│   ├── test_model.py
+│   └── test_pipeline.py
+├── conception/
+│   ├── conception.md                    ← Ce document
+│   ├── architecture.drawio
+│   └── architecture.png
+├── artifacts/                           ← Artefacts locaux (gitignored)
+├── docker-compose.yml                   ← 8 services Docker
+├── init-db.sql                          ← Script SQL pour la base MLflow
+├── Makefile                             ← Raccourcis : make test, lint, format, up, down
+├── pyproject.toml                       ← Configuration ruff
+├── .env / .env.example                  ← Variables d'environnement (AWS, ports, credentials)
 ├── .gitignore
-├── .env.example                     ← Template pour les variables d'environnement (sans les vrais mots de passe)
+├── CLAUDE.md
 └── README.md
 ```
 
-### 2.2 Services Docker Compose existants
+### 2.2 Services Docker Compose
 
-Docker Compose lance 4 services (= 4 conteneurs) qui communiquent entre eux :
+Docker Compose lance **8 services** (= 8 conteneurs) qui communiquent entre eux :
 
 **`postgres`** (postgres:14-alpine) — port 5432 (interne, pas exposé)
 Base de données partagée : stocke les métadonnées d'Airflow (état des DAGs) et de MLflow (expériences, métriques).
 
 **`mlflow`** (Dockerfile dédié : `mlflow/Dockerfile`) — port 5000
-Serveur MLflow : interface web pour voir les expériences + registre de modèles (= l'endroit où sont stockés les modèles entraînés avec leur version). Les dépendances (mlflow, psycopg2-binary) sont pré-installées au build via uv, ce qui réduit le temps de démarrage de ~60s à quelques secondes.
+Serveur MLflow : interface web pour voir les expériences + registre de modèles. Les dépendances sont pré-installées au build via uv. Artifacts stockés sur LocalStack S3.
 
 **`airflow`** (apache/airflow:2.8.1) — port 8080
 Orchestrateur : exécute les pipelines (DAGs) automatiquement. Interface web pour les surveiller. Login : admin/admin.
 
 **`api`** (python:3.11-slim) — port 8000
 API FastAPI : reçoit une transaction en JSON, la passe au modèle, retourne "fraude" ou "légitime" avec une probabilité.
+
+**`webapp`** (Streamlit) — port 8501
+Interface graphique pour interagir avec l'API : dashboard, prédiction unitaire, analyse batch, métriques du modèle.
+
+**`pgadmin`** — port 5051
+Interface web d'administration pour PostgreSQL. Permet de visualiser les bases Airflow et MLflow.
+
+**`localstack`** — port 4566
+Émulateur AWS local. Fournit un service S3 compatible pour stocker les artefacts MLflow (modèles, scaler, etc.) sans compte AWS réel.
+
+**`localstack-init`** (conteneur éphémère)
+Initialise le bucket S3 sur LocalStack au démarrage, puis s'arrête.
 
 ### 2.3 DAG existant : `fraud_detection_pipeline`
 
@@ -117,12 +189,12 @@ L'API est le point d'accès pour les utilisateurs et applications qui veulent sa
 1. **~~`.env` manquant~~** ✅ — Résolu. Le fichier `.env.example` existe et `.env` est dans `.gitignore`.
 2. **CSV monté depuis `../creditcard.csv`** — Le chemin suppose que le fichier CSV est dans un dossier au-dessus du projet. Fragile, ne marchera que sur la machine d'Ahmed.
 3. **L'API dépend de `best_model.txt`** — Ce fichier est créé par Airflow. Si on lance l'API sans avoir d'abord exécuté le DAG Airflow, elle démarre sans modèle (retourne 503 sur `/predict`).
-4. **Aucun test** — pytest est listé comme dépendance mais il n'y a aucun fichier de test.
-5. **Pas de WebApp** — L'objectif 7 (interface graphique) est complètement absent.
+4. **~~Aucun test~~** ✅ — Résolu. 4 fichiers de tests créés dans `tests/` (test_api.py, test_preprocessing.py, test_model.py, test_pipeline.py) + conftest.py.
+5. **~~Pas de WebApp~~** ✅ — Résolu. Application Streamlit complète dans `webapp/` avec pages, composants, API client, thème CSS et assets.
 6. **~~Pas de DAG de Continuous Training~~** ✅ — Résolu. Le DAG `fraud_retraining_ct` (@daily) vérifie la performance et le drift, et déclenche le réentraînement si nécessaire.
 7. **Pas de Kubernetes / CI/CD** — Aucun fichier de déploiement K8s, aucun workflow GitHub Actions.
 8. **Pas de monitoring** — L'API n'expose pas de métriques pour Prometheus, pas de dashboard Grafana.
-9. **Artefacts en volume Docker local** — Les modèles et le scaler sont stockés dans un volume Docker partagé entre Airflow et l'API. Il faut migrer vers **AWS S3** pour que les modèles soient accessibles depuis n'importe quel environnement (dev, K8s) et persister entre les redémarrages.
+9. **~~Artefacts en volume Docker local~~** ✅ — Résolu. Les artefacts MLflow sont maintenant stockés sur **LocalStack S3** (émulateur AWS local), accessible depuis tous les services. Le bucket est initialisé automatiquement par le service `localstack-init`.
 10. **~~MLflow installait ses deps au démarrage~~** ✅ — Résolu. `mlflow/Dockerfile` pré-installe les dépendances au build, `start_period` du healthcheck réduit de 120s à 10s.
 
 ---
@@ -151,7 +223,7 @@ Ce modèle a **deux utilités** dans notre projet :
 
 Le DAG `fraud_detection_pipeline` entraîne les deux modèles puis compare leurs performances. En temps normal, le LightGBM gagne haut la main. Mais si un jour il y a un problème (bug dans le code, données corrompues, mauvais hyperparamètres), l'Isolation Forest est là comme **plan B**. Si l'IF obtient un meilleur score que le LightGBM, c'est lui qui sera mis en production automatiquement. C'est un filet de sécurité.
 
-**Utilité 2 : Sentinelle pour détecter le "data drift" dans le DAG CT (à créer)**
+**Utilité 2 : Sentinelle pour détecter le "data drift" dans le DAG CT (✅ créé)**
 
 Le "data drift" (dérive des données), c'est quand les nouvelles données ne ressemblent plus à celles sur lesquelles le modèle a été entraîné. Par exemple : le profil des fraudeurs change, les montants moyens augmentent, de nouveaux patterns apparaissent. Quand ça arrive, le modèle en production fait des prédictions de plus en plus mauvaises **sans qu'on le sache** (car en production réelle, on n'a pas les vrais labels immédiatement).
 
@@ -236,7 +308,7 @@ MLflow Model Registry (le registre de modèles) fonctionne comme un système de 
 
 Le Continuous Training est le principe de réentraîner automatiquement le modèle quand c'est nécessaire, sans intervention humaine. C'est un concept central du MLOps (vu en cours : spécifique aux systèmes ML, n'existe pas en DevOps classique).
 
-Dans notre projet, le CT est implémenté par le **DAG `fraud_retraining_ct`** (à créer). Ce DAG ne réentraîne pas lui-même : il **vérifie** si un réentraînement est nécessaire, et si oui, il **déclenche** le DAG de training existant (`fraud_detection_pipeline`). Le CT est le "déclencheur intelligent", le training pipeline est "l'exécutant".
+Dans notre projet, le CT est implémenté par le **DAG `fraud_retraining_ct`** (✅ créé dans `airflow/dags/fraud_retraining_ct.py`). Ce DAG ne réentraîne pas lui-même : il **vérifie** si un réentraînement est nécessaire, et si oui, il **déclenche** le DAG de training existant (`fraud_detection_pipeline`). Le CT est le "déclencheur intelligent", le training pipeline est "l'exécutant".
 
 ### 3.5 Fréquences de déclenchement des DAGs
 
@@ -284,22 +356,25 @@ L'endpoint `/metrics` n'existe pas encore dans le code d'Ahmed — c'est à ajou
 ### 4.1 Services Docker Compose (environnement de développement)
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                    docker-compose.yml (DEV)                       │
-├───────────┬────────┬──────────┬─────────┬───────────┬────────────┤
-│ postgres  │ mlflow │ airflow  │   api   │  webapp   │ prometheus │
-│ :5432     │ :5000  │ :8080    │ :8000   │  :8501    │ :9090      │
-│ EXISTANT  │EXISTANT│ EXISTANT │EXISTANT │ À CRÉER   │ BONUS      │
-└───────────┴────────┴──────────┴─────────┴───────────┴────────────┘
-         │
-         ▼
-   ┌──────────────┐
-   │   AWS S3      │  ← stockage externe (modèles + artefacts MLflow)
-   │   (cloud)     │    credentials dans .env (AWS_ACCESS_KEY_ID, etc.)
-   └──────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                           docker-compose.yml (DEV) — 8 services                      │
+├──────────┬────────┬─────────┬───────┬─────────┬─────────┬────────────┬──────────────┤
+│ postgres │ mlflow │ airflow │  api  │ webapp  │ pgadmin │ localstack │ localstack   │
+│ :5432    │ :5000  │ :8080   │ :8000 │ :8501   │ :5051   │ :4566      │ -init        │
+│ ✅ FAIT  │ ✅ FAIT│ ✅ FAIT │✅ FAIT│ ✅ FAIT │ ✅ FAIT │ ✅ FAIT    │ ✅ FAIT      │
+└──────────┴────────┴─────────┴───────┴─────────┴─────────┴────────────┴──────────────┘
+                                                              │
+                                                              ▼
+                                                      ┌──────────────┐
+                                                      │ LocalStack S3│ ← stockage local
+                                                      │ (émulateur   │   des artefacts MLflow
+                                                      │  AWS)        │   (modèles, scaler, etc.)
+                                                      └──────────────┘
+
+❌ À FAIRE : prometheus (:9090) + grafana (:3000) — monitoring de l'API
 ```
 
-MLflow est configuré avec `--artifacts-destination s3://<bucket>/mlflow-artifacts/` pour stocker les modèles sur AWS S3 au lieu d'un volume Docker local. Cela permet aux modèles de persister indépendamment des conteneurs et d'être accessibles depuis n'importe quel environnement.
+MLflow est configuré pour stocker les artefacts sur LocalStack S3 (émulateur AWS local). Le bucket est créé automatiquement par le service `localstack-init` au démarrage. Cela permet aux modèles de persister indépendamment des conteneurs et d'être accessibles depuis tous les services.
 
 ### 4.2 DAGs Airflow (avec fréquences)
 
@@ -320,7 +395,7 @@ DAG 2 : fraud_retraining_ct (✅ CRÉÉ)
               sinon → skip_retraining (log "tout va bien")
 ```
 
-### 4.3 Cluster Kubernetes (environnement de production)
+### 4.3 Cluster Kubernetes (environnement de production) — ❌ À FAIRE
 
 ```
 Cluster Kubernetes (Docker Desktop — images locales, pas de registry)
@@ -339,7 +414,7 @@ Cluster Kubernetes (Docker Desktop — images locales, pas de registry)
 
 `imagePullPolicy: Never` = Kubernetes utilise les images Docker construites localement, pas de registry distant. Ça marche car Docker Desktop partage le même daemon entre le host et K8s.
 
-### 4.4 Pipeline CI/CD (GitHub Actions)
+### 4.4 Pipeline CI/CD (GitHub Actions) — ❌ À FAIRE
 
 CI = Continuous Integration (vérification automatique du code à chaque push)
 CD = Continuous Deployment (déploiement automatique quand le code est validé)
@@ -354,52 +429,65 @@ Quand du code est mergé dans la branche main :
        (images locales, pas de registry — imagePullPolicy: Never)
 ```
 
-### 4.5 Arborescence cible complète
+### 4.5 Arborescence cible — état d'avancement
 
 ```
 Fraudguard/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                          ← À CRÉER
-│       └── cd.yml                          ← À CRÉER
+│       ├── ci.yml                          ← ❌ À FAIRE
+│       └── cd.yml                          ← ❌ À FAIRE
 ├── airflow/
 │   ├── dags/
-│   │   ├── fraud_pipeline.py               ← EXISTANT (à vérifier)
-│   │   └── fraud_retraining_ct.py          ← ✅ CRÉÉ
-│   ├── Dockerfile                          ← EXISTANT (à vérifier)
-│   ├── pyproject.toml                      ← EXISTANT
-│   └── uv.lock                             ← EXISTANT
+│   │   ├── fraud_pipeline.py               ← ✅ FAIT
+│   │   └── fraud_retraining_ct.py          ← ✅ FAIT
+│   ├── Dockerfile                          ← ✅ FAIT
+│   ├── pyproject.toml                      ← ✅ FAIT
+│   └── uv.lock                             ← ✅ FAIT
 ├── api/
-│   ├── main.py                             ← EXISTANT (à enrichir : ajouter /metrics pour Prometheus)
-│   ├── Dockerfile                          ← EXISTANT (à vérifier)
-│   ├── pyproject.toml                      ← EXISTANT (ajouter la dépendance prometheus_client)
-│   └── uv.lock                             ← EXISTANT
+│   ├── main.py                             ← ✅ FAIT (❌ manque /metrics Prometheus)
+│   ├── Dockerfile                          ← ✅ FAIT
+│   ├── pyproject.toml                      ← ✅ FAIT (❌ manque prometheus_client)
+│   └── uv.lock                             ← ✅ FAIT
 ├── mlflow/
-│   └── Dockerfile                          ← ✅ CRÉÉ (deps pré-installées au build)
-├── webapp/                                 ← À CRÉER (dossier complet)
-│   ├── app.py
-│   ├── Dockerfile
-│   └── requirements.txt
-├── k8s/                                    ← À CRÉER (dossier complet)
+│   └── Dockerfile                          ← ✅ FAIT
+├── webapp/                                 ← ✅ FAIT (complet)
+│   ├── app.py                              ← ✅ FAIT
+│   ├── Dockerfile                          ← ✅ FAIT
+│   ├── pyproject.toml / uv.lock            ← ✅ FAIT
+│   ├── config.py                           ← ✅ FAIT
+│   ├── api/ (client.py, models.py)         ← ✅ FAIT
+│   ├── pages/ (dashboard, prédiction, batch, métriques) ← ✅ FAIT
+│   ├── components/ (header, sidebar, charts, formulaire) ← ✅ FAIT
+│   ├── styles/ (theme.py)                  ← ✅ FAIT
+│   └── assets/ (logos)                     ← ✅ FAIT
+├── k8s/                                    ← ❌ À FAIRE (dossier complet)
 │   ├── namespaces.yaml
 │   ├── api-deployment.yaml
 │   ├── api-service.yaml
 │   ├── webapp-deployment.yaml
 │   └── webapp-service.yaml
-├── monitoring/                             ← À CRÉER (bonus)
+├── monitoring/                             ← ❌ À FAIRE (bonus)
 │   └── prometheus.yml
-├── tests/                                  ← À CRÉER (dossier complet)
-│   ├── test_preprocessing.py
-│   ├── test_api.py
-│   └── test_model.py
-├── docker-compose.yml                      ← EXISTANT (ajouter les services webapp + prometheus)
-├── .env                                    ← À CRÉER (ignoré par git, contient les mots de passe)
-├── .env.example                            ← À CRÉER (template sans les vrais mots de passe)
-├── init-db.sql                             ← EXISTANT
-├── pyproject.toml                          ← EXISTANT
-├── Makefile                                ← À CRÉER (raccourcis de commandes)
-├── .gitignore                              ← EXISTANT (ajouter .env)
-└── README.md                               ← EXISTANT (à enrichir)
+├── tests/                                  ← ✅ FAIT
+│   ├── conftest.py                         ← ✅ FAIT
+│   ├── test_api.py                         ← ✅ FAIT
+│   ├── test_preprocessing.py               ← ✅ FAIT
+│   ├── test_model.py                       ← ✅ FAIT
+│   └── test_pipeline.py                    ← ✅ FAIT
+├── conception/                             ← ✅ FAIT
+│   ├── conception.md                       ← ✅ FAIT (ce document)
+│   ├── architecture.drawio                 ← ✅ FAIT
+│   └── architecture.png                    ← ✅ FAIT
+├── artifacts/                              ← ✅ FAIT (gitignored)
+├── docker-compose.yml                      ← ✅ FAIT (8 services)
+├── .env / .env.example                     ← ✅ FAIT
+├── init-db.sql                             ← ✅ FAIT
+├── pyproject.toml                          ← ✅ FAIT
+├── Makefile                                ← ✅ FAIT
+├── CLAUDE.md                               ← ✅ FAIT
+├── .gitignore                              ← ✅ FAIT
+└── README.md                               ← ✅ FAIT
 ```
 
 ---
@@ -413,7 +501,7 @@ Fraudguard/
 - `recall_score` : "parmi les vraies fraudes, combien le modèle en a-t-il trouvé ?"
 - `roc_auc_score` : aire sous la courbe ROC (loggée pour référence, mais on ne l'utilise pas pour comparer car trompeuse avec 0.17% de fraudes)
 
-### Dans Prometheus/Grafana (collectées en temps réel par l'API) — à ajouter
+### Dans Prometheus/Grafana (collectées en temps réel par l'API) — ❌ À FAIRE
 - `fraudguard_requests_total` : compteur du nombre de requêtes reçues (par endpoint et code de retour)
 - `fraudguard_request_duration_seconds` : histogramme des temps de réponse (pour voir si l'API ralentit)
 - `fraudguard_predictions_total` : compteur des prédictions (séparé "fraude" vs "légitime", pour détecter si le modèle se met à tout classifier pareil)
@@ -585,30 +673,31 @@ Les Rôles 4 et 5 ne sont pas impactés car Kubernetes, CI/CD, WebApp et Monitor
 
 ## 9. Instructions pour Claude Code
 
-Ce document est la **spécification complète** du projet. Lors de l'implémentation :
+Ce document est la **spécification complète** du projet. État actuel et prochaines étapes :
 
-1. **Ne pas toucher** aux fichiers existants qui fonctionnent, sauf pour les enrichir là où c'est indiqué (ajouter `/metrics` dans `api/main.py`, ajouter des services dans `docker-compose.yml`, configurer MLflow → AWS S3).
+1. **Ne pas toucher** aux fichiers existants qui fonctionnent, sauf pour les enrichir là où c'est indiqué.
 
-2. **Créer** les fichiers manquants dans cet ordre de priorité :
-   - `.env` + `.env.example` (débloque tout le monde — inclure AWS credentials : `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `S3_BUCKET_NAME`)
-   - `webapp/` (app.py, Dockerfile, requirements.txt)
-   - `airflow/dags/fraud_retraining_ct.py` (schedule `@daily`, avec check performance + check drift + branching + trigger)
-   - `k8s/` (namespaces.yaml, api-deployment.yaml avec `imagePullPolicy: Never`, api-service.yaml, webapp-deployment.yaml, webapp-service.yaml)
-   - `.github/workflows/` (ci.yml, cd.yml — CD fait `docker build` local + `kubectl apply`, **pas de push sur DockerHub**)
-   - `tests/` (test_preprocessing.py, test_api.py, test_model.py)
-   - `monitoring/prometheus.yml`
-   - `Makefile`
+2. **Déjà créés** (ne plus recréer) :
+   - ✅ `.env` + `.env.example` — variables d'environnement complètes
+   - ✅ `webapp/` — application Streamlit complète (multi-pages, composants, API client, thème)
+   - ✅ `airflow/dags/fraud_retraining_ct.py` — DAG CT @daily
+   - ✅ `tests/` — test_api.py, test_preprocessing.py, test_model.py, test_pipeline.py, conftest.py
+   - ✅ `Makefile` — targets test, lint, format, up, down
+   - ✅ LocalStack S3 + pgAdmin dans docker-compose.yml (8 services)
 
-3. **Mettre à jour** les fichiers existants :
-   - `docker-compose.yml` → ajouter les services `webapp` et `prometheus`, configurer MLflow avec `--artifacts-destination s3://<bucket>/mlflow-artifacts/`, passer les variables AWS aux services qui en ont besoin
-   - `api/main.py` → ajouter l'endpoint `GET /metrics` avec `prometheus_client`
-   - `api/pyproject.toml` → ajouter `prometheus_client` dans les dépendances
-   - `.gitignore` → ajouter `.env`
-   - `README.md` → enrichir avec la nouvelle architecture et les instructions
+3. **Reste à créer** (par ordre de priorité) :
+   - ❌ `k8s/` (namespaces.yaml, api-deployment.yaml avec `imagePullPolicy: Never`, api-service.yaml, webapp-deployment.yaml, webapp-service.yaml)
+   - ❌ `.github/workflows/` (ci.yml, cd.yml — CD fait `docker build` local + `kubectl apply`, **pas de push sur DockerHub**)
+   - ❌ `monitoring/prometheus.yml`
 
-4. **Spécificités infra** :
-   - **AWS S3** pour les artefacts MLflow (modèles, scaler, etc.) — pas de volume Docker local
+4. **Reste à enrichir** :
+   - ❌ `api/main.py` → ajouter l'endpoint `GET /metrics` avec `prometheus_client`
+   - ❌ `api/pyproject.toml` → ajouter `prometheus_client` dans les dépendances
+   - ❌ `docker-compose.yml` → ajouter les services `prometheus` et `grafana`
+
+5. **Spécificités infra** :
+   - **LocalStack S3** pour les artefacts MLflow (émulateur AWS local, pas de compte cloud nécessaire)
    - **Images Docker locales** pour K8s — pas de DockerHub, `imagePullPolicy: Never` dans les deployments
    - **Docker Desktop K8s** — partage le daemon Docker avec le host
 
-5. **Conventions** : Python 3.11, linter ruff (line-length=100), pas de code superflu ("less is more" — les profs vérifient qu'on comprend ce qu'on fait), chaque fichier doit être fonctionnel.
+6. **Conventions** : Python 3.11, linter ruff (line-length=100), pas de code superflu ("less is more" — les profs vérifient qu'on comprend ce qu'on fait), chaque fichier doit être fonctionnel.

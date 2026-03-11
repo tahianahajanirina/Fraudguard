@@ -10,9 +10,10 @@ from typing import AsyncGenerator
 import joblib
 import mlflow.pyfunc
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from mlflow.tracking import MlflowClient
 from pydantic import BaseModel, ConfigDict, field_validator
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -23,6 +24,38 @@ SCALER_PATH = Path("/artifacts/scaler.pkl")
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Prometheus metrics
+# ---------------------------------------------------------------------------
+API_REQUESTS = Counter(
+    "api_requests_total",
+    "Total number of API requests",
+    ["endpoint", "method", "status"]
+)
+
+API_ERRORS = Counter(
+    "api_errors_total",
+    "Total number of API errors",
+    ["endpoint"]
+)
+
+API_LATENCY = Histogram(
+    "api_request_latency_seconds",
+    "API request latency in seconds",
+    ["endpoint", "method"]
+)
+
+MODEL_PREDICTIONS = Counter(
+    "model_predictions_total",
+    "Total number of model predictions",
+    ["endpoint", "result"]
+)
+
+MODEL_INFERENCE_LATENCY = Histogram(
+    "model_inference_latency_seconds",
+    "Model inference latency in seconds",
+    ["endpoint"]
+)
 
 # ---------------------------------------------------------------------------
 # Lifespan — load model and scaler on startup
@@ -239,7 +272,13 @@ def health() -> dict:
 @app.post("/predict")
 def predict(transaction: Transaction) -> dict:
     """Predict fraud for a single transaction."""
+    import time
+
+    start = time.time()
+
     if app.state.model is None:
+        API_ERRORS.labels(endpoint="/predict").inc()
+        API_REQUESTS.labels(endpoint="/predict", method="POST", status="503").inc()
         raise HTTPException(
             status_code=503,
             detail="No model is loaded. Run the Airflow pipeline first.",
@@ -253,6 +292,12 @@ def predict(transaction: Transaction) -> dict:
             app.state.model, app.state.model_name, row_df
         )
 
+        MODEL_PREDICTIONS.labels(
+            endpoint="/predict",
+            result="fraud" if is_fraud else "normal"
+        ).inc()
+
+        API_REQUESTS.labels(endpoint="/predict", method="POST", status="200").inc()
         return {
             "is_fraud": bool(is_fraud),
             "fraud_probability": proba,
@@ -261,14 +306,26 @@ def predict(transaction: Transaction) -> dict:
             "prediction_label": "FRAUD" if is_fraud else "NORMAL",
         }
     except Exception as exc:
+        API_ERRORS.labels(endpoint="/predict").inc()
+        API_REQUESTS.labels(endpoint="/predict", method="POST", status="500").inc()
         log.error(f"Prediction error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal prediction error") from exc
+    finally:
+        duration = time.time() - start
+        API_LATENCY.labels(endpoint="/predict", method="POST").observe(duration)
+        MODEL_INFERENCE_LATENCY.labels(endpoint="/predict").observe(duration)
 
 
 @app.post("/predict_batch")
 def predict_batch(body: BatchRequest) -> dict:
     """Predict fraud for a batch of transactions (max 1000)."""
+    import time
+
+    start = time.time()
+
     if app.state.model is None:
+        API_ERRORS.labels(endpoint="/predict_batch").inc()
+        API_REQUESTS.labels(endpoint="/predict_batch", method="POST", status="503").inc()
         raise HTTPException(
             status_code=503,
             detail="No model is loaded. Run the Airflow pipeline first.",
@@ -294,6 +351,13 @@ def predict_batch(body: BatchRequest) -> dict:
             )
 
         fraud_count = sum(1 for p in predictions if p["is_fraud"])
+
+        MODEL_PREDICTIONS.labels(endpoint="/predict_batch", result="total").inc(len(predictions))
+        MODEL_PREDICTIONS.labels(endpoint="/predict_batch", result="fraud").inc(fraud_count)
+        MODEL_PREDICTIONS.labels(endpoint="/predict_batch", result="normal").inc(len(predictions) - fraud_count)
+
+        API_REQUESTS.labels(endpoint="/predict_batch", method="POST", status="200").inc()
+
         return {
             "predictions": predictions,
             "total": len(predictions),
@@ -301,8 +365,14 @@ def predict_batch(body: BatchRequest) -> dict:
             "fraud_rate": fraud_count / len(predictions) if predictions else 0.0,
         }
     except Exception as exc:
+        API_ERRORS.labels(endpoint="/predict_batch").inc()
+        API_REQUESTS.labels(endpoint="/predict_batch", method="POST", status="500").inc()
         log.error(f"Batch prediction error: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal prediction error") from exc
+    finally:
+        duration = time.time() - start
+        API_LATENCY.labels(endpoint="/predict_batch", method="POST").observe(duration)
+        MODEL_INFERENCE_LATENCY.labels(endpoint="/predict_batch").observe(duration)
 
 
 @app.get("/model_metrics")
@@ -346,3 +416,8 @@ def model_metrics() -> dict:
             status_code=503,
             detail=f"MLflow unavailable: {exc}",
         ) from exc
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Expose Prometheus metrics."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

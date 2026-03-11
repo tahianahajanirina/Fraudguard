@@ -30,6 +30,7 @@ RUN uv pip install --system \
     "joblib>=1.3,<2" \
     "pyarrow>=15,<16" \
     "psycopg2-binary>=2.9,<3" \
-    "matplotlib>=3.8,<4"
+    "matplotlib>=3.8,<4" \
+    "pytest>=7,<8"
 
 USER airflow

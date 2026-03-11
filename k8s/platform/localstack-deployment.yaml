@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: localstack/localstack:3
+          ports:
+            - containerPort: 4566
+              name: edge
+          env:
+            - name: SERVICES
+              value: s3
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+          readinessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: edge
+            initialDelaySeconds: 10
+            periodSeconds: 10

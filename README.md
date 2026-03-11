@@ -35,7 +35,7 @@ Services share a single network:
 | `mlflow`    | 5000 | Experiment tracking + Model Registry      |
 | `airflow`   | 8080 | Pipeline orchestration (LocalExecutor)    |
 | `api`       | 8000 | FastAPI REST prediction service           |
-| `pgadmin`   | 5050 | PostgreSQL UI                             |
+| `pgadmin`   | 5051 | PostgreSQL UI                             |
 | `localstack`| 4566 | S3-compatible bucket for MLflow artifacts |
 
 MLflow metadata are stored in PostgreSQL, while models/artifacts are stored in an S3 bucket (`s3://mlflow`) hosted locally by LocalStack.
@@ -130,6 +130,90 @@ Example response:
   "model_used": "lightgbm_fraud",
   "prediction_label": "NORMAL"
 }
+```
+
+---
+
+## API Kubernetes + GitHub Actions (Local Cluster)
+
+This repository now includes:
+
+- Kubernetes base manifests under `k8s/api`
+- Environment overlays under `k8s/overlays/dev` and `k8s/overlays/prod`
+- A CI/CD workflow under `.github/workflows/api-k8s-cicd.yml`
+
+### 1) Local Kubernetes prerequisites
+
+- Docker Desktop Kubernetes **or** Minikube running
+- `kubectl` installed on the machine that will run deployment
+- A GitHub self-hosted runner on that same machine (required to access local cluster)
+
+### 2) Kubernetes manifests included
+
+- Base (`k8s/api`): shared Deployment, Service, ConfigMap
+- Dev overlay (`k8s/overlays/dev`):
+  - namespace `fraudguard-dev`
+  - 1 replica, lighter resources
+  - default MLflow URI for local cluster
+- Prod overlay (`k8s/overlays/prod`):
+  - namespace `fraudguard-prod`
+  - 2 replicas, stricter resources
+  - image pull policy `Always`
+
+### 3) GitHub Actions workflow behavior
+
+Workflow: `.github/workflows/api-k8s-cicd.yml`
+
+On push (when API/K8s files change), it:
+
+1. Builds Docker image from `api/Dockerfile`
+2. Pushes image to `ghcr.io/<owner>/fraudguard-api`
+3. Uses self-hosted runner to apply Kubernetes manifests locally
+4. Updates deployment image and waits for rollout
+
+Environment routing:
+
+- Push to `develop` -> deploy `dev` overlay (`fraudguard-dev`)
+- Push to `main` -> deploy `prod` overlay (`fraudguard-prod`)
+- `workflow_dispatch` -> choose `dev` or `prod` manually
+
+### 4) Required GitHub setup
+
+Create a self-hosted runner in your repo settings and install it on your local machine.
+
+Set repository secrets:
+
+- `KUBE_CONTEXT` (optional): e.g. `docker-desktop` or `minikube`
+- `MLFLOW_TRACKING_URI` (optional):
+  - Docker Desktop: `http://host.docker.internal:5000`
+  - Minikube: `http://host.minikube.internal:5000`
+- `GHCR_USERNAME` and `GHCR_PAT` (optional, only if image is private)
+
+### 5) Access the API in Kubernetes
+
+After deployment:
+
+```bash
+kubectl -n fraudguard get pods
+kubectl -n fraudguard get svc fraudguard-api
+kubectl -n fraudguard port-forward svc/fraudguard-api 8000:8000
+```
+
+Then open: http://localhost:8000/docs
+
+To target a specific environment manually:
+
+```bash
+kubectl apply -k k8s/overlays/dev
+kubectl apply -k k8s/overlays/prod
+```
+
+### 6) First deployment sanity check
+
+```bash
+kubectl -n fraudguard rollout status deployment/fraudguard-api
+kubectl -n fraudguard logs deploy/fraudguard-api --tail=100
+curl http://localhost:8000/health
 ```
 
 ---

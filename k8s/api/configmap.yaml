@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fraudguard-api-config
+data:
+  # For Docker Desktop Kubernetes, host.docker.internal usually works.
+  # For Minikube, use host.minikube.internal.
+  MLFLOW_TRACKING_URI: "http://host.docker.internal:5000"

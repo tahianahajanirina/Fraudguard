@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - postgres-statefulset.yaml
+  - postgres-service.yaml
+  - localstack-deployment.yaml
+  - localstack-service.yaml
+  - localstack-init-job.yaml
+  - mlflow-deployment.yaml
+  - mlflow-service.yaml
+  - airflow-web-deployment.yaml
+  - airflow-scheduler-deployment.yaml
+  - airflow-service.yaml
+  - webapp-deployment.yaml
+  - webapp-service.yaml
+  - shared-artifacts-pvc.yaml
+  - postgres-pvc.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: postgres-init
+    files:
+      - init-db.sql=init-db.sql
+  - name: airflow-dags
+    files:
+      - fraud_pipeline.py=fraud_pipeline.py
+      - fraud_retraining_ct.py=fraud_retraining_ct.py

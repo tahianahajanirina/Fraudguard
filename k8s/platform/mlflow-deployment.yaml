@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      automountServiceAccountToken: false
+      initContainers:
+        - name: wait-postgres
+          image: postgres:14-alpine
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: POSTGRES_USER
+          command: ["sh", "-c", "until pg_isready -h postgres -U ${POSTGRES_USER}; do sleep 2; done"]
+        - name: wait-localstack
+          image: curlimages/curl:8.11.1
+          command: ["sh", "-c", "until curl -sf http://localstack:4566/_localstack/health >/dev/null; do sleep 2; done"]
+      containers:
+        - name: mlflow
+          image: ghcr.io/REPLACE_ME/fraudguard-mlflow:sha-0000000
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: MLFLOW_PORT
+              value: "5000"
+            - name: MLFLOW_BACKEND_STORE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: MLFLOW_BACKEND_STORE_URI
+            - name: MLFLOW_ARTIFACTS_DESTINATION
+              value: s3://mlflow
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://localstack:4566
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fraudguard-platform-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+            - name: AWS_S3_FORCE_PATH_STYLE
+              value: "true"
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+              ephemeral-storage: 128Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+              ephemeral-storage: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10

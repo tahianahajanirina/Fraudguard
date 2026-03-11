@@ -3,7 +3,7 @@
 # Mastère Spécialisé IA — Télécom Paris
 
 <p align="center">
-  <img src="architecture.png" alt="Architecture système FraudGuard" width="100%">
+  <img src="architecture.png" alt="Architecture système FraudGuard" width="900">
 </p>
 
 ---

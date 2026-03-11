@@ -360,6 +360,7 @@ with DAG(
     schedule=None,
     start_date=days_ago(1),
     catchup=False,
+    max_active_runs=1,
     tags=["mlops", "fraud", "telecom-paris"],
     description="end-to-end fraud detection pipeline from raw CSV to registered model",
 ) as dag:

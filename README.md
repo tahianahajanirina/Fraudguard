@@ -1,110 +1,306 @@
-# FraudGuard
+<p align="center">
+  <h1 align="center">🛡️ FraudGuard</h1>
+  <p align="center">
+    <strong>Production-grade MLOps pipeline for credit card fraud detection</strong>
+  </p>
+  <p align="center">
+    <em>Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris — DATA713</em>
+  </p>
+</p>
 
-> POC MLOps pipeline for credit card fraud detection.
-
-**Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris**
-
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![Airflow](https://img.shields.io/badge/Airflow-2.8.1-green)
-![MLflow](https://img.shields.io/badge/MLflow-2.11-orange)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.110-teal)
-![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-
----
-
-## Architecture
-
-```
-creditcard.csv
-     │
-     ▼
-[Airflow DAG]──────────────────────────────────────┐
-  ├─ ingest_and_preprocess                          │
-  ├─ train_isolation_forest ──► [MLflow Registry]  │
-  └─ train_lightgbm ──────────► [MLflow Registry]  │
-       └─ register_best_model                       │
-                                                    │
-[FastAPI /predict] ◄────── loads Production model ◄┘
-```
-
-Services share a single network:
-
-| Service    | Port | Role                                      |
-|------------|------|-------------------------------------------|
-| `postgres`  | —    | Airflow metadata + MLflow backend store   |
-| `mlflow`    | 5000 | Experiment tracking + Model Registry      |
-| `airflow`   | 8080 | Pipeline orchestration (LocalExecutor)    |
-| `api`       | 8000 | FastAPI REST prediction service           |
-| `pgadmin`   | 5051 | PostgreSQL UI                             |
-| `localstack`| 4566 | S3-compatible bucket for MLflow artifacts |
-
-MLflow metadata are stored in PostgreSQL, while models/artifacts are stored in an S3 bucket (`s3://mlflow`) hosted locally by LocalStack.
+<p align="center">
+  <a href="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml">
+    <img src="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml/badge.svg?branch=develop" alt="CI/CD">
+  </a>
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11">
+  <img src="https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?logo=mlflow&logoColor=white" alt="MLflow">
+  <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow">
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+</p>
 
 ---
 
-## ML Approach
+## 📋 Overview
 
-Two models compete on the same 80/20 stratified split:
+**FraudGuard** is a complete MLOps pipeline that trains, compares, and deploys machine learning models for credit card fraud detection. It trains two models — **IsolationForest** (unsupervised) and **LightGBM** (supervised) — compares them on **AUC-PR**, promotes the winner to production via **MLflow**, and serves real-time predictions through a **FastAPI** endpoint with a **Streamlit** dashboard.
 
-- **IsolationForest** — unsupervised anomaly detection baseline
-  - `n_estimators=200`, `contamination` set to the actual fraud rate
-- **LightGBM** — supervised gradient boosting
-  - `num_leaves=63`, `learning_rate=0.05`, `scale_pos_weight` balances the 0.17% fraud rate
-
-The winner is chosen by **AUC-PR (Average Precision Score)** — the correct metric for heavily imbalanced datasets. ROC-AUC and accuracy are misleading when negatives dominate.
+The project demonstrates production-grade practices: experiment tracking, model registry, automated retraining with drift detection, containerized microservices, Kubernetes deployment, CI/CD pipelines, and load testing.
 
 ---
 
-## Prerequisites
+## 🏗️ Architecture
 
-- Docker and Docker Compose installed
-- `creditcard.csv/creditcard.csv` present as a sibling folder to `fraudguard/`
-- `anomaly-detection-lightgbm-isolation-forest.ipynb` present as a sibling
+```mermaid
+graph TB
+    subgraph Data
+        CSV[(creditcard.csv)]
+    end
+
+    subgraph Docker Compose Network
+        subgraph Storage
+            PG[(PostgreSQL 14<br/>:5432)]
+            LS[LocalStack S3<br/>:4566]
+        end
+
+        subgraph Orchestration
+            AF[Apache Airflow<br/>:8080]
+        end
+
+        subgraph MLOps
+            ML[MLflow Server<br/>:5000]
+        end
+
+        subgraph Serving
+            API[FastAPI<br/>:8000]
+            WEB[Streamlit Dashboard<br/>:8501]
+        end
+
+        subgraph Monitoring
+            PGA[pgAdmin<br/>:5051]
+            LOC[Locust<br/>:8089]
+        end
+    end
+
+    CSV -->|Volume mount| AF
+    AF -->|Log experiments| ML
+    AF -->|Store artifacts| LS
+    ML -->|Metadata| PG
+    AF -->|Metadata| PG
+    ML -->|Read artifacts| LS
+    API -->|Load production model| ML
+    API -->|Load scaler| LS
+    WEB -->|HTTP requests| API
+    LOC -->|Load test| API
+    PGA -->|Admin| PG
+
+    style CSV fill:#f9f,stroke:#333
+    style PG fill:#336791,color:#fff
+    style ML fill:#0194E2,color:#fff
+    style AF fill:#017CEE,color:#fff
+    style API fill:#009688,color:#fff
+    style WEB fill:#FF4B4B,color:#fff
+    style LS fill:#C925D1,color:#fff
+```
+
+### ML Training Pipeline
+
+```mermaid
+graph LR
+    A[📥 Ingest & Preprocess] --> B[🌲 Train IsolationForest]
+    A --> C[⚡ Train LightGBM]
+    B --> D[🏆 Compare AUC-PR<br/>& Register Best Model]
+    C --> D
+    D -->|Winner → Production| E[📦 MLflow Registry]
+    D -->|Loser → Staging| E
+
+    style A fill:#4CAF50,color:#fff
+    style B fill:#FF9800,color:#fff
+    style C fill:#2196F3,color:#fff
+    style D fill:#9C27B0,color:#fff
+    style E fill:#0194E2,color:#fff
+```
+
+### Continuous Retraining DAG
+
+```mermaid
+graph LR
+    A[📊 Check Model<br/>Performance] --> C{🔀 Decide<br/>Retraining}
+    B[🔍 Check Data<br/>Drift] --> C
+    C -->|Degraded or Drift| D[🔄 Trigger<br/>Full Pipeline]
+    C -->|All OK| E[⏭️ Skip<br/>Retraining]
+
+    style A fill:#FF9800,color:#fff
+    style B fill:#FF5722,color:#fff
+    style C fill:#9C27B0,color:#fff
+    style D fill:#F44336,color:#fff
+    style E fill:#4CAF50,color:#fff
+```
+
+The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production model's AUC-PR has dropped below **0.70** and whether the anomaly rate exceeds **5× the expected fraud rate** (data drift). If either condition is met, it triggers a full retraining via the `fraud_detection_pipeline` DAG.
+
+---
+
+## ✨ Features
+
+- **Model Competition** — IsolationForest vs LightGBM compared on AUC-PR, the right metric for imbalanced data (0.17% fraud rate)
+- **Experiment Tracking** — Full metric, parameter, and artifact logging via MLflow
+- **Model Registry** — Automatic promotion of the best model to Production stage
+- **Continuous Training** — Daily monitoring for performance degradation and data drift with automatic retraining
+- **Real-Time Predictions** — FastAPI endpoint with risk scoring (HIGH / MEDIUM / LOW)
+- **Batch Predictions** — Upload CSVs for bulk fraud analysis (up to 1000 transactions)
+- **Interactive Dashboard** — Streamlit UI with KPIs, single/batch prediction, and model metrics
+- **Load Testing** — Locust-based load testing with realistic transaction patterns
+- **Kubernetes Ready** — Kustomize overlays for dev and prod environments
+- **CI/CD Pipeline** — GitHub Actions builds, pushes to GHCR, and deploys to Kubernetes
+- **S3 Artifact Storage** — LocalStack provides S3-compatible storage for all artifacts
+
+---
+
+## 🛠️ Tech Stack
+
+| Tool | Version | Role |
+|------|---------|------|
+| **Python** | 3.11 | Language across all services |
+| **Apache Airflow** | 2.8 | DAG orchestration (LocalExecutor) |
+| **MLflow** | 2.11 | Experiment tracking & Model Registry |
+| **FastAPI** | 0.110 | REST prediction service |
+| **Streamlit** | 1.32 | Dashboard UI |
+| **LightGBM** | latest | Supervised fraud classifier |
+| **scikit-learn** | latest | IsolationForest + preprocessing |
+| **PostgreSQL** | 14 | Metadata store (Airflow + MLflow) |
+| **LocalStack** | 3 | S3-compatible artifact storage |
+| **Docker Compose** | v2 | Local orchestration (9 services) |
+| **Kubernetes** | 1.28+ | Production deployment |
+| **Kustomize** | built-in | Environment overlays (dev/prod) |
+| **GitHub Actions** | — | CI/CD pipeline |
+| **Locust** | latest | Load testing |
+| **uv** | latest | Fast Python package management |
+| **Ruff** | latest | Linting & formatting |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Docker** and **Docker Compose** v2 installed
+- **`creditcard.csv`** placed in a sibling directory:
 
 ```
-MLOPS_Project/
+parent_directory/
 ├── creditcard.csv/
-│   └── creditcard.csv
-├── anomaly-detection-lightgbm-isolation-forest.ipynb
-└── fraudguard/          ← this directory
+│   └── creditcard.csv        # Kaggle Credit Card Fraud Detection dataset
+└── Fraudguard/               # ← this repository
+```
+
+> 📥 Download the dataset from [Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud).
+
+### Installation & Launch
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/tahianahajanirina/Fraudguard.git
+cd Fraudguard
+
+# 2. Create environment file
+cp .env.example .env
+
+# 3. Build and start all services
+make up
+# or: docker compose up --build -d
+
+# 4. Wait ~60-90 seconds for bootstrap
+#    (PostgreSQL, LocalStack S3 bucket, Airflow DB init)
+
+# 5. Open Airflow UI and trigger the pipeline
+#    http://localhost:8080 — login: admin/admin
+#    Unpause and trigger the "fraud_detection_pipeline" DAG
+
+# 6. Monitor the run (~5 minutes)
+#    The pipeline trains both models and promotes the winner
+
+# 7. Access the services
+#    API:       http://localhost:8000/docs
+#    Dashboard: http://localhost:8501
+#    MLflow:    http://localhost:5000
+#    pgAdmin:   http://localhost:5051
+#    Locust:    http://localhost:8089
+```
+
+### Stopping
+
+```bash
+make down          # Stop containers (keep data)
+make down-clean    # Stop containers + remove volumes
 ```
 
 ---
 
-## Quick Start
+## 📁 Project Structure
 
-1. **Enter the project directory**
-   ```bash
-   cd fraudguard
-   ```
-
-2. **Configure environment variables**
-  ```bash
-  cp .env.example .env
-  ```
-
-3. **Build and start all services**
-   ```bash
-  docker compose up --build -d
-   ```
-
-4. **Wait ~60-90 seconds** for first-time bootstrap (Postgres + LocalStack bucket + Airflow init)
-
-5. **Open Airflow** at http://localhost:8080 — login uses values from `.env`
-
-6. **Unpause and trigger** the `fraud_detection_pipeline` DAG
-
-7. **Monitor** the run in the Airflow UI — takes ~5 minutes
-
-8. **Open MLflow** at http://localhost:5000 to compare experiment runs and inspect the Model Registry
-
-9. **Once the pipeline completes**, the API is live at http://localhost:8000/docs
-
-10. **(Optional) Inspect bucket via LocalStack** (S3 endpoint at http://localhost:4566)
+```
+Fraudguard/
+├── airflow/                          # Airflow service
+│   ├── dags/
+│   │   ├── fraud_pipeline.py         # Main training pipeline (4 tasks)
+│   │   └── fraud_retraining_ct.py    # Daily continuous training DAG
+│   ├── Dockerfile
+│   └── pyproject.toml
+├── api/                              # FastAPI service
+│   ├── main.py                       # Endpoints: predict, predict_batch, health, model_metrics
+│   ├── Dockerfile
+│   └── pyproject.toml
+├── webapp/                           # Streamlit dashboard
+│   ├── app.py                        # Entry point
+│   ├── config.py                     # Global configuration
+│   ├── pages/                        # Dashboard, Single Prediction, Batch, Metrics
+│   ├── components/                   # Reusable UI components
+│   ├── api/                          # HTTP client for backend
+│   ├── styles/                       # CSS theming
+│   └── Dockerfile
+├── mlflow/                           # MLflow server
+│   └── Dockerfile
+├── tests/                            # Integration tests
+│   ├── test_api.py                   # API endpoint tests
+│   ├── test_preprocessing.py         # Data pipeline tests
+│   ├── test_model.py                 # Model training tests
+│   ├── test_pipeline.py              # End-to-end DAG tests
+│   └── conftest.py                   # Shared fixtures
+├── load_tests/
+│   └── locustfile.py                 # Locust load testing
+├── k8s/                              # Kubernetes manifests
+│   ├── api/                          # Base API resources
+│   ├── platform/                     # Platform services (postgres, mlflow, airflow, etc.)
+│   └── overlays/
+│       ├── dev/                      # Dev overlay (1 replica)
+│       └── prod/                     # Prod overlay (2 replicas)
+├── conception/                       # Architecture diagrams
+├── .github/workflows/
+│   └── api-k8s-cicd.yml             # CI/CD pipeline
+├── docker-compose.yml                # Local orchestration (9 services)
+├── Makefile                          # Development commands
+├── deploy-k8s.sh                     # K8s deployment script
+└── pyproject.toml                    # Root config (Ruff)
+```
 
 ---
 
-## Example API Call
+## 📡 API Reference
+
+Base URL: `http://localhost:8000`
+
+### `GET /`
+
+Returns project metadata.
+
+```bash
+curl http://localhost:8000/
+```
+
+### `GET /health`
+
+Health check — returns model status, MLflow connection, and scaler state.
+
+```bash
+curl http://localhost:8000/health
+```
+
+```json
+{
+  "status": "healthy",
+  "model_name": "lightgbm_fraud",
+  "model_stage": "Production",
+  "mlflow_uri": "http://mlflow:5000",
+  "scaler_loaded": true
+}
+```
+
+### `POST /predict`
+
+Single transaction prediction.
 
 ```bash
 curl -X POST http://localhost:8000/predict \
@@ -121,7 +317,6 @@ curl -X POST http://localhost:8000/predict \
   }'
 ```
 
-Example response:
 ```json
 {
   "is_fraud": false,
@@ -132,96 +327,147 @@ Example response:
 }
 ```
 
----
+### `POST /predict_batch`
 
-## API Kubernetes + GitHub Actions (Local Cluster)
-
-This repository now includes:
-
-- Kubernetes base manifests under `k8s/api`
-- Environment overlays under `k8s/overlays/dev` and `k8s/overlays/prod`
-- A CI/CD workflow under `.github/workflows/api-k8s-cicd.yml`
-
-### 1) Local Kubernetes prerequisites
-
-- Docker Desktop Kubernetes **or** Minikube running
-- `kubectl` installed on the machine that will run deployment
-- A GitHub self-hosted runner on that same machine (required to access local cluster)
-
-### 2) Kubernetes manifests included
-
-- Base (`k8s/api`): shared Deployment, Service, ConfigMap
-- Dev overlay (`k8s/overlays/dev`):
-  - namespace `fraudguard-dev`
-  - 1 replica, lighter resources
-  - default MLflow URI for local cluster
-- Prod overlay (`k8s/overlays/prod`):
-  - namespace `fraudguard-prod`
-  - 2 replicas, stricter resources
-  - image pull policy `Always`
-
-### 3) GitHub Actions workflow behavior
-
-Workflow: `.github/workflows/api-k8s-cicd.yml`
-
-On push (when API/K8s files change), it:
-
-1. Builds Docker image from `api/Dockerfile`
-2. Pushes image to `ghcr.io/<owner>/fraudguard-api`
-3. Uses self-hosted runner to apply Kubernetes manifests locally
-4. Updates deployment image and waits for rollout
-
-Environment routing:
-
-- Push to `develop` -> deploy `dev` overlay (`fraudguard-dev`)
-- Push to `main` -> deploy `prod` overlay (`fraudguard-prod`)
-- `workflow_dispatch` -> choose `dev` or `prod` manually
-
-### 4) Required GitHub setup
-
-Create a self-hosted runner in your repo settings and install it on your local machine.
-
-Set repository secrets:
-
-- `KUBE_CONTEXT` (optional): e.g. `docker-desktop` or `minikube`
-- `MLFLOW_TRACKING_URI` (optional):
-  - Docker Desktop: `http://host.docker.internal:5000`
-  - Minikube: `http://host.minikube.internal:5000`
-- `GHCR_USERNAME` and `GHCR_PAT` (optional, only if image is private)
-
-### 5) Access the API in Kubernetes
-
-After deployment:
+Batch predictions (max 1000 transactions).
 
 ```bash
-kubectl -n fraudguard get pods
-kubectl -n fraudguard get svc fraudguard-api
-kubectl -n fraudguard port-forward svc/fraudguard-api 8000:8000
+curl -X POST http://localhost:8000/predict_batch \
+  -H "Content-Type: application/json" \
+  -d '{"transactions": [{"V1": -1.35, ..., "Amount": 149.62}]}'
 ```
 
-Then open: http://localhost:8000/docs
+### `GET /model_metrics`
 
-To target a specific environment manually:
-
-```bash
-kubectl apply -k k8s/overlays/dev
-kubectl apply -k k8s/overlays/prod
-```
-
-### 6) First deployment sanity check
+Returns production model evaluation metrics (precision, recall, F1, ROC-AUC, AUC-PR).
 
 ```bash
-kubectl -n fraudguard rollout status deployment/fraudguard-api
-kubectl -n fraudguard logs deploy/fraudguard-api --tail=100
-curl http://localhost:8000/health
+curl http://localhost:8000/model_metrics
 ```
 
 ---
 
-## Stopping the Project
+## 🤖 ML Models
 
-```bash
-docker-compose down -v
+### Why Two Models?
+
+| Model | Type | Approach | Strengths |
+|-------|------|----------|-----------|
+| **IsolationForest** | Unsupervised | Anomaly detection baseline | No labels needed, detects novel fraud patterns |
+| **LightGBM** | Supervised | Gradient boosting classifier | High precision, learns from labeled examples |
+
+### Hyperparameters
+
+**IsolationForest**: `n_estimators=200`, `contamination` = actual fraud rate (~0.0017)
+
+**LightGBM**: `num_leaves=63`, `learning_rate=0.05`, `scale_pos_weight` auto-calculated from class imbalance
+
+### Why AUC-PR?
+
+With only **0.17% fraud** in the dataset, accuracy and ROC-AUC are misleading — a model predicting "not fraud" for everything achieves 99.83% accuracy. **AUC-PR (Average Precision Score)** focuses on the minority class and is the correct metric for heavily imbalanced datasets. The model with the higher AUC-PR is promoted to Production; the other goes to Staging.
+
+### Pipeline Details
+
+1. **Ingest & Preprocess**: Load CSV → drop `Time` column → StandardScaler on `Amount` → 80/20 stratified split → save as Parquet
+2. **Train**: Both models train in parallel, logging metrics/params/artifacts to MLflow
+3. **Compare & Register**: AUC-PR comparison → winner promoted to Production in MLflow Model Registry
+
+---
+
+## 🔄 Continuous Training
+
+The `fraud_retraining_ct` DAG runs **daily** and performs two checks:
+
+1. **Performance Check** — Queries MLflow for the Production model's AUC-PR. If below **0.70**, retraining is triggered.
+2. **Data Drift Check** — Runs IsolationForest on the test set. If the anomaly rate exceeds **5× the expected fraud rate**, drift is detected.
+
+If either condition is met, the DAG triggers a full execution of `fraud_detection_pipeline`, which retrains both models, compares them, and promotes the new winner.
+
+---
+
+## ☸️ Kubernetes Deployment
+
+### Manifests Structure
+
+```
+k8s/
+├── api/                    # Base: Deployment, Service, ConfigMap
+├── platform/               # PostgreSQL, MLflow, Airflow, Webapp, LocalStack
+└── overlays/
+    ├── dev/                # 1 replica, lighter resources, fraudguard-dev namespace
+    └── prod/               # 2 replicas, stricter limits, fraudguard-prod namespace
 ```
 
-This removes all containers and named volumes (Postgres data, MLflow artifacts, processed splits).
+### Deploy
+
+```bash
+# Dev environment
+make k8s-deploy-dev
+
+# Production environment
+make k8s-deploy-prod
+
+# Verify
+kubectl -n fraudguard-dev get pods
+kubectl -n fraudguard-dev port-forward svc/fraudguard-api 8000:8000
+```
+
+### CI/CD Pipeline
+
+The GitHub Actions workflow (`.github/workflows/api-k8s-cicd.yml`):
+
+1. **Builds** Docker images for all services (API, Airflow, MLflow, Webapp)
+2. **Pushes** to GitHub Container Registry (GHCR)
+3. **Deploys** to local Kubernetes via a self-hosted runner
+
+| Branch | Environment | Namespace |
+|--------|------------|-----------|
+| `develop` | Dev | `fraudguard-dev` |
+| `main` | Prod | `fraudguard-prod` |
+
+---
+
+## 🔥 Load Testing
+
+[Locust](https://locust.io/) simulates realistic traffic patterns against the API:
+
+- **Normal transactions** (75% of traffic) — legitimate transaction features
+- **Fraud transactions** (25% of traffic) — suspicious high-risk patterns
+- **Health checks** — periodic endpoint monitoring
+
+```bash
+# Start with Docker Compose (already included)
+docker compose up locust
+
+# Access Locust UI
+open http://localhost:8089
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+make test                # Run all tests
+make test-api            # API endpoint tests
+make test-preprocessing  # Data pipeline tests
+make test-model          # Model training tests
+make test-pipeline       # End-to-end DAG tests
+
+make lint                # Ruff linting
+make format              # Ruff formatting
+```
+
+---
+
+## 👥 Authors
+
+**Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris**
+
+Module **DATA713** — MLOps
+
+---
+
+<p align="center">
+  Built with ❤️ using Python, MLflow, Airflow, FastAPI, and Streamlit
+</p>

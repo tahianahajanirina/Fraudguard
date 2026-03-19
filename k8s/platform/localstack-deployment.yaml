@@ -23,9 +23,23 @@ spec:
               value: s3
             - name: AWS_DEFAULT_REGION
               value: us-east-1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           readinessProbe:
             httpGet:
               path: /_localstack/health
               port: edge
             initialDelaySeconds: 10
             periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: edge
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3

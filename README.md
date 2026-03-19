@@ -2,32 +2,26 @@
   <h1>🛡️ FraudGuard — Détection de Fraude Bancaire avec MLOps</h1>
   <p><b>Pipeline MLOps complet pour la détection de fraude bancaire en temps réel.</b></p>
   <p>
-    <a href="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml">
-      <img src="https://img.shields.io/github/actions/workflow/status/tahianahajanirina/Fraudguard/api-k8s-cicd.yml?branch=develop&style=for-the-badge&label=CI%2FCD" alt="CI/CD">
-    </a>
-    <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11">
-    <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-    <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow">
-    <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white" alt="Airflow">
-    <img src="https://img.shields.io/badge/LightGBM-Gradient%20Boosting-02569B?style=for-the-badge&logoColor=white" alt="LightGBM">
-    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
-    <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes">
-    <img src="https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus">
-    <img src="https://img.shields.io/badge/Grafana-Dashboards-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana">
-    <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
-    <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit">
-    <img src="https://img.shields.io/badge/Locust-Load%20Testing-5C9B3E?style=for-the-badge&logoColor=white" alt="Locust">
-    <img src="https://img.shields.io/badge/StatsD-Metrics-333333?style=for-the-badge&logoColor=white" alt="StatsD">
-    <img src="https://img.shields.io/badge/Tests-63%20passed-brightgreen?style=for-the-badge" alt="Tests">
-    <img src="https://img.shields.io/badge/Licence-Academic%20Use-blue?style=for-the-badge" alt="Licence">
+    <a href="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml"><img src="https://img.shields.io/github/actions/workflow/status/tahianahajanirina/Fraudguard/api-k8s-cicd.yml?branch=develop&style=for-the-badge&label=CI%2FCD" alt="CI/CD"></a>
+    <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white">
+    <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white">
+    <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?style=for-the-badge&logo=mlflow&logoColor=white">
+    <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white">
+    <img src="https://img.shields.io/badge/LightGBM-Gradient%20Boosting-02569B?style=for-the-badge&logoColor=white">
+    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+    <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white">
+    <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white">
+    <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white">
+    <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white">
+    <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white">
+    <img src="https://img.shields.io/badge/Tests-63%20passed-brightgreen?style=for-the-badge">
   </p>
 </div>
 
 <br>
 
-> **Projet réalisé par [Tahiana Hajanirina Andriambahoaka](https://github.com/tahianahajanirina), Mohamed Amar, [Ahmed Fakhfakh](https://github.com/Ahmedfekhfakh), Oussama Bel Haj Rhouma et Mohamed Khalil Ounis**
+> **Projet réalisé par [Tahiana Hajanirina Andriambahoaka](https://github.com/tahianahajanirina), Mohamed Amar, [Ahmed Fakhfakh](https://github.com/Ahmedfekhfakh), Oussama Bel Haj Rhouma et Mohamed Khalil Ounis**  
 > dans le cadre du cours *DATA713 — MLOps* à Télécom Paris · Institut Polytechnique de Paris · Février 2026
-
 ---
 
 ## 📋 À propos du projet
@@ -72,6 +66,34 @@
 
 Le système est composé de **13 services Docker** interconnectés, orchestrés via Docker Compose :
 
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          FraudGuard Platform                            │
+│                                                                         │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐      │
+│  │  Airflow   │───▶│  MLflow   │───▶│ LocalStack│    │ PostgreSQL│      │
+│  │   :8080    │    │   :5000   │    │   :4566   │    │   :5432   │      │
+│  └─────┬─────┘    └───────────┘    └───────────┘    └───────────┘      │
+│        │ trigger                                                        │
+│        ▼                                                                │
+│  ┌───────────────────────────────────────────────────────┐             │
+│  │              ML Pipeline (DAG)                         │             │
+│  │  ingest_and_preprocess → [IsoForest, LightGBM] → register          │
+│  └───────────────────────────────────────────────────────┘             │
+│        │ model promu                                                    │
+│        ▼                                                                │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐                       │
+│  │    API     │◀──▶│  Webapp   │    │  Locust   │                       │
+│  │   :8000    │    │   :8501   │    │   :8089   │                       │
+│  └─────┬─────┘    └───────────┘    └───────────┘                       │
+│        │ /metrics                                                       │
+│        ▼                                                                │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐      │
+│  │Prometheus  │───▶│  Grafana  │    │  StatsD   │    │  cAdvisor │      │
+│  │   :9090    │    │   :3000   │    │   :9102   │    │   :8081   │      │
+│  └───────────┘    └───────────┘    └───────────┘    └───────────┘      │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Pipeline d'entraînement ML
 

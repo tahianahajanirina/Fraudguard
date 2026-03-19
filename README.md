@@ -66,34 +66,9 @@
 
 Le système est composé de **13 services Docker** interconnectés, orchestrés via Docker Compose :
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          FraudGuard Platform                            │
-│                                                                         │
-│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐      │
-│  │  Airflow   │───▶│  MLflow   │───▶│ LocalStack│    │ PostgreSQL│      │
-│  │   :8080    │    │   :5000   │    │   :4566   │    │   :5432   │      │
-│  └─────┬─────┘    └───────────┘    └───────────┘    └───────────┘      │
-│        │ trigger                                                        │
-│        ▼                                                                │
-│  ┌───────────────────────────────────────────────────────┐             │
-│  │              ML Pipeline (DAG)                         │             │
-│  │  ingest_and_preprocess → [IsoForest, LightGBM] → register          │
-│  └───────────────────────────────────────────────────────┘             │
-│        │ model promu                                                    │
-│        ▼                                                                │
-│  ┌───────────┐    ┌───────────┐    ┌───────────┐                       │
-│  │    API     │◀──▶│  Webapp   │    │  Locust   │                       │
-│  │   :8000    │    │   :8501   │    │   :8089   │                       │
-│  └─────┬─────┘    └───────────┘    └───────────┘                       │
-│        │ /metrics                                                       │
-│        ▼                                                                │
-│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐      │
-│  │Prometheus  │───▶│  Grafana  │    │  StatsD   │    │  cAdvisor │      │
-│  │   :9090    │    │   :3000   │    │   :9102   │    │   :8081   │      │
-│  └───────────┘    └───────────┘    └───────────┘    └───────────┘      │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+<div align="center">
+  <img src="docs/architecture-services.png" alt="Architecture FraudGuard — 13 services Docker" width="90%" />
+</div>
 
 ### Pipeline d'entraînement ML
 

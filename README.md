@@ -33,100 +33,15 @@ The project demonstrates production-grade practices: experiment tracking, model 
 
 ## 🏗️ Architecture
 
-```mermaid
-graph TB
-    subgraph Data
-        CSV[(creditcard.csv)]
-    end
-
-    subgraph Docker Compose Network
-        subgraph Storage
-            PG[(PostgreSQL 14<br/>:5432)]
-            LS[LocalStack S3<br/>:4566]
-        end
-
-        subgraph Orchestration
-            AF[Apache Airflow<br/>:8080]
-        end
-
-        subgraph MLOps
-            ML[MLflow Server<br/>:5000]
-        end
-
-        subgraph Serving
-            API[FastAPI<br/>:8000]
-            WEB[Streamlit Dashboard<br/>:8501]
-        end
-
-        subgraph Monitoring
-            PROM[Prometheus<br/>:9090]
-            GRAF[Grafana<br/>:3000]
-            STATSD[StatsD Exporter<br/>:9102]
-            PGA[pgAdmin<br/>:5051]
-            LOC[Locust<br/>:8089]
-        end
-    end
-
-    CSV -->|Volume mount| AF
-    AF -->|Log experiments| ML
-    AF -->|Store artifacts| LS
-    ML -->|Metadata| PG
-    AF -->|Metadata| PG
-    ML -->|Read artifacts| LS
-    API -->|Load production model| ML
-    API -->|Load scaler| LS
-    WEB -->|HTTP requests| API
-    LOC -->|Load test| API
-    PGA -->|Admin| PG
-    API -->|/metrics| PROM
-    STATSD -->|Airflow metrics| PROM
-    PROM -->|Data source| GRAF
-
-    style CSV fill:#f9f,stroke:#333
-    style PROM fill:#E6522C,color:#fff
-    style GRAF fill:#F46800,color:#fff
-    style STATSD fill:#E6522C,color:#fff
-    style PG fill:#336791,color:#fff
-    style ML fill:#0194E2,color:#fff
-    style AF fill:#017CEE,color:#fff
-    style API fill:#009688,color:#fff
-    style WEB fill:#FF4B4B,color:#fff
-    style LS fill:#C925D1,color:#fff
-```
+![Architecture](docs/screenshots/architecture.png)
 
 ### ML Training Pipeline
 
-```mermaid
-graph LR
-    A[📥 Ingest & Preprocess] --> B[🌲 Train IsolationForest]
-    A --> C[⚡ Train LightGBM]
-    B --> D[🏆 Compare AUC-PR<br/>& Register Best Model]
-    C --> D
-    D -->|Winner → Production| E[📦 MLflow Registry]
-    D -->|Loser → Staging| E
-
-    style A fill:#4CAF50,color:#fff
-    style B fill:#FF9800,color:#fff
-    style C fill:#2196F3,color:#fff
-    style D fill:#9C27B0,color:#fff
-    style E fill:#0194E2,color:#fff
-```
+![ML Pipeline](docs/screenshots/ml_pipeline.png)
 
 ### Continuous Retraining DAG
 
-```mermaid
-graph LR
-    A[📊 Check Model<br/>Performance] --> C{🔀 Decide<br/>Retraining}
-    B[🔍 Check Data<br/>Drift] --> C
-    C -->|Degraded or Drift| D[🔄 Trigger<br/>Full Pipeline]
-    C -->|All OK| E[⏭️ Skip<br/>Retraining]
-
-    style A fill:#FF9800,color:#fff
-    style B fill:#FF5722,color:#fff
-    style C fill:#9C27B0,color:#fff
-    style D fill:#F44336,color:#fff
-    style E fill:#4CAF50,color:#fff
-```
+![Retraining DAG](docs/screenshots/retraining_dag.png)
 
 The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production model's AUC-PR has dropped below **0.70** and whether the anomaly rate exceeds **5× the expected fraud rate** (data drift). If either condition is met, it triggers a full retraining via the `fraud_detection_pipeline` DAG.
 
@@ -321,7 +236,7 @@ Fraudguard/
 ├── conception/                       # Architecture diagrams
 ├── .github/workflows/
 │   └── api-k8s-cicd.yml             # CI/CD pipeline
-├── docker-compose.yml                # Local orchestration (9 services)
+├── docker-compose.yml                # Local orchestration (13 services)
 ├── Makefile                          # Development commands
 ├── deploy-k8s.sh                     # K8s deployment script
 └── pyproject.toml                    # Root config (Ruff)
@@ -352,7 +267,10 @@ curl http://localhost:8000/health
 ```json
 {
   "status": "healthy",
+  "model_loaded": true,
   "model_name": "lightgbm_fraud",
+  "model_version": "2",
+  "model_score": 0.5676,
   "model_stage": "Production",
   "mlflow_uri": "http://mlflow:5000",
   "scaler_loaded": true

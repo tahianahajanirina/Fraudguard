@@ -59,6 +59,9 @@ graph TB
         end
 
         subgraph Monitoring
+            PROM[Prometheus<br/>:9090]
+            GRAF[Grafana<br/>:3000]
+            STATSD[StatsD Exporter<br/>:9102]
             PGA[pgAdmin<br/>:5051]
             LOC[Locust<br/>:8089]
         end
@@ -75,8 +78,14 @@ graph TB
     WEB -->|HTTP requests| API
     LOC -->|Load test| API
     PGA -->|Admin| PG
+    API -->|/metrics| PROM
+    STATSD -->|Airflow metrics| PROM
+    PROM -->|Data source| GRAF
 
     style CSV fill:#f9f,stroke:#333
+    style PROM fill:#E6522C,color:#fff
+    style GRAF fill:#F46800,color:#fff
+    style STATSD fill:#E6522C,color:#fff
     style PG fill:#336791,color:#fff
     style ML fill:#0194E2,color:#fff
     style AF fill:#017CEE,color:#fff
@@ -133,6 +142,10 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 |---|---|
 | ![API](docs/screenshots/api_docs.png) | ![Dashboard](docs/screenshots/streamlit_dashboard.png) |
 
+| Prometheus Targets | Grafana Dashboard |
+|---|---|
+| ![Prometheus](docs/screenshots/prometheus.png) | ![Grafana](docs/screenshots/grafana.png) |
+
 | pgAdmin | Locust Load Testing |
 |---|---|
 | ![pgAdmin](docs/screenshots/pgadmin.png) | ![Locust](docs/screenshots/locust.png) |
@@ -152,6 +165,7 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 - **Kubernetes Ready** — Kustomize overlays for dev and prod environments
 - **CI/CD Pipeline** — GitHub Actions builds, pushes to GHCR, and deploys to Kubernetes
 - **S3 Artifact Storage** — LocalStack provides S3-compatible storage for all artifacts
+- **Monitoring Stack** — Prometheus + Grafana + StatsD exporter for API and Airflow metrics
 
 ---
 
@@ -168,7 +182,9 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 | **scikit-learn** | latest | IsolationForest + preprocessing |
 | **PostgreSQL** | 14 | Metadata store (Airflow + MLflow) |
 | **LocalStack** | 3 | S3-compatible artifact storage |
-| **Docker Compose** | v2 | Local orchestration (9 services) |
+| **Prometheus** | latest | Metrics collection & alerting |
+| **Grafana** | latest | Metrics visualization & dashboards |
+| **Docker Compose** | v2 | Local orchestration (13 services) |
 | **Kubernetes** | 1.28+ | Production deployment |
 | **Kustomize** | built-in | Environment overlays (dev/prod) |
 | **GitHub Actions** | — | CI/CD pipeline |
@@ -221,6 +237,8 @@ docker compose up --build -d
 #    Dashboard: http://localhost:8501
 #    MLflow:    http://localhost:5000
 #    pgAdmin:   http://localhost:5051
+#    Prometheus: http://localhost:9090
+#    Grafana:   http://localhost:3000 (admin/admin)
 #    Locust:    http://localhost:8089
 ```
 
@@ -257,6 +275,12 @@ Fraudguard/
 │   └── Dockerfile
 ├── mlflow/                           # MLflow server
 │   └── Dockerfile
+├── prometheus/                       # Prometheus monitoring
+│   ├── Dockerfile
+│   └── prometheus.yml                # Scrape targets config
+├── grafana/                          # Grafana dashboards
+│   └── provisioning/
+│       └── datasources/              # Auto-provisioned Prometheus datasource
 ├── tests/                            # Integration tests
 │   ├── test_api.py                   # API endpoint tests
 │   ├── test_preprocessing.py         # Data pipeline tests
@@ -357,6 +381,14 @@ Returns production model evaluation metrics (precision, recall, F1, ROC-AUC, AUC
 
 ```bash
 curl http://localhost:8000/model_metrics
+```
+
+### `GET /metrics`
+
+Prometheus metrics endpoint — exposes request counts, latency histograms, and prediction counters.
+
+```bash
+curl http://localhost:8000/metrics
 ```
 
 ---
@@ -476,7 +508,9 @@ make format              # Ruff formatting
 
 ## 👥 Authors
 
-**Tahiana Hajanirina ANDRIAMBAHOAKA**
+**Tahiana Hajanirina ANDRIAMBAHOAKA** — Project lead, ML pipeline, API, Streamlit dashboard, CI/CD, Kubernetes
+
+**Khalil** — Prometheus + Grafana monitoring stack, StatsD exporter, API metrics instrumentation
 
 Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris
 

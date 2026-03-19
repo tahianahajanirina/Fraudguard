@@ -1,30 +1,27 @@
-<p align="center">
-  <h1 align="center">🛡️ FraudGuard</h1>
-  <p align="center">
-    <strong>Pipeline MLOps complet pour la détection de fraude bancaire en temps réel</strong>
+<div align="center">
+  <h1>🛡️ FraudGuard — Détection de Fraude Bancaire avec MLOps</h1>
+  <p><b>Pipeline MLOps complet pour la détection de fraude bancaire en temps réel.</b></p>
+  <p>
+    <a href="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml"><img src="https://img.shields.io/github/actions/workflow/status/tahianahajanirina/Fraudguard/api-k8s-cicd.yml?branch=develop&style=for-the-badge&label=CI%2FCD" alt="CI/CD"></a>
+    <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white">
+    <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white">
+    <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?style=for-the-badge&logo=mlflow&logoColor=white">
+    <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white">
+    <img src="https://img.shields.io/badge/LightGBM-Gradient%20Boosting-02569B?style=for-the-badge&logoColor=white">
+    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+    <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white">
+    <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white">
+    <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white">
+    <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white">
+    <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white">
+    <img src="https://img.shields.io/badge/Tests-63%20passed-brightgreen?style=for-the-badge">
   </p>
-  <p align="center">
-    <em>Entraînement, comparaison et déploiement automatisés de modèles de détection de fraude</em>
-  </p>
-</p>
+</div>
 
-<p align="center">
-  <a href="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/tahianahajanirina/Fraudguard/api-k8s-cicd.yml?branch=develop&style=for-the-badge&label=CI%2FCD" alt="CI/CD">
-  </a>
-  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11">
-  <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow">
-  <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white" alt="Airflow">
-  <img src="https://img.shields.io/badge/LightGBM-Gradient%20Boosting-02569B?style=for-the-badge&logo=microsoft&logoColor=white" alt="LightGBM">
-  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
-  <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes">
-  <img src="https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus">
-  <img src="https://img.shields.io/badge/Grafana-Dashboards-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana">
-  <img src="https://img.shields.io/badge/Tests-63%20passed-brightgreen?style=for-the-badge" alt="Tests">
-  <img src="https://img.shields.io/badge/Licence-Academic%20Use-blue?style=for-the-badge" alt="Licence">
-</p>
+<br>
 
+> **Projet réalisé par [Tahiana Hajanirina Andriambahoaka](https://github.com/tahianahajanirina), Mohamed Amar, [Ahmed Fakhfakh](https://github.com/Ahmedfekhfakh), Oussama Bel Haj Rhouma et Mohamed Khalil Ounis**  
+> dans le cadre du cours *DATA713 — MLOps* à Télécom Paris · Institut Polytechnique de Paris · Février 2026
 ---
 
 ## 📋 À propos du projet

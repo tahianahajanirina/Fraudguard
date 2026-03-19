@@ -198,7 +198,30 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 
 ### Prerequisites
 
-- **Docker** and **Docker Compose** v2 installed
+#### For Docker Compose (local dev/demo)
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Docker Engine | 24+ | [Install](https://docs.docker.com/engine/install/) |
+| Docker Compose | v2.20+ | Bundled with Docker Desktop |
+| RAM | 8 GB+ | 6 GB minimum |
+| Disk | 20 GB+ | For images + data |
+| OS | Linux / macOS / Windows (WSL2) | |
+
+#### For Kubernetes (production)
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| k3s | v1.28+ | [Install](https://k3s.io/) — `curl -sfL https://get.k3s.io \| sudo sh -` |
+| kubectl | v1.28+ | Bundled with k3s |
+| RAM | 8 GB+ | |
+| Disk | **50 GB+** | k3s duplicates images in its own containerd runtime |
+| OS | Linux only | k3s does not support macOS/Windows natively |
+
+> ⚠️ **Disk requirement for K8s:** The project images total ~6 GB. k3s stores a separate copy in its containerd runtime (`/var/lib/rancher/k3s/`), so you need at least 50 GB of free disk space for a comfortable deployment.
+
+#### Dataset
+
 - **`creditcard.csv`** placed at `~/creditcard.csv` (sibling of the project directory):
 
 ```
@@ -433,6 +456,17 @@ If either condition is met, the DAG triggers a full execution of `fraud_detectio
 
 ## ☸️ Kubernetes Deployment
 
+> **Note:** The Kubernetes manifests are production-ready and validated. Local deployment with k3s requires a machine with at least 50 GB of available disk space (the Docker images total ~6 GB, and k3s needs additional space for its own container runtime). For demo purposes, Docker Compose is used to run all services locally.
+
+### Orchestrator: k3s
+
+The project targets [k3s](https://k3s.io/) — a lightweight, CNCF-certified Kubernetes distribution ideal for edge and resource-constrained environments. Installation:
+
+```bash
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--docker --disable=traefik --write-kubeconfig-mode=644" sudo sh -
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+```
+
 ### Manifests Structure
 
 ```
@@ -444,18 +478,27 @@ k8s/
     └── prod/               # 2 replicas, stricter limits, fraudguard-prod namespace
 ```
 
+All services expose **NodePort** endpoints for external access:
+
+| Service | NodePort | Internal Port |
+|---------|----------|---------------|
+| API | 30000 | 8000 |
+| Airflow | 30001 | 8080 |
+| MLflow | 30002 | 5000 |
+| Webapp | 30003 | 8501 |
+
 ### Deploy
 
 ```bash
-# Dev environment
-make k8s-deploy-dev
-
-# Production environment
-make k8s-deploy-prod
+# Dev environment (k3s required, min 50 GB disk)
+kubectl apply -k k8s/overlays/dev/
 
 # Verify
 kubectl -n fraudguard-dev get pods
-kubectl -n fraudguard-dev port-forward svc/fraudguard-api 8000:8000
+kubectl -n fraudguard-dev get svc
+
+# Production environment
+kubectl apply -k k8s/overlays/prod/
 ```
 
 ### CI/CD Pipeline
@@ -464,7 +507,7 @@ The GitHub Actions workflow (`.github/workflows/api-k8s-cicd.yml`):
 
 1. **Builds** Docker images for all services (API, Airflow, MLflow, Webapp)
 2. **Pushes** to GitHub Container Registry (GHCR)
-3. **Deploys** to local Kubernetes via a self-hosted runner
+3. **Deploys** to Kubernetes via a self-hosted runner
 
 | Branch | Environment | Namespace |
 |--------|------------|-----------|

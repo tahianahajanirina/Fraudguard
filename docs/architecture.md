@@ -2,7 +2,7 @@
 
 ## Overview
 
-FraudGuard follows a microservices architecture with 9 Docker containers orchestrated via Docker Compose. Each service has a single responsibility, communicating over a shared Docker network.
+FraudGuard follows a microservices architecture with 13 Docker containers orchestrated via Docker Compose. Each service has a single responsibility, communicating over a shared Docker network. The monitoring stack (Prometheus, Grafana, StatsD exporter, Node exporter, cAdvisor) provides observability across all services.
 
 ## System Architecture
 
@@ -32,6 +32,14 @@ graph TB
             WEB[Streamlit<br/>Port 8501<br/>Dashboard UI]
         end
 
+        subgraph Monitoring Stack
+            PROM[Prometheus<br/>Port 9090]
+            GRAF[Grafana<br/>Port 3000]
+            STATSD[StatsD Exporter<br/>Port 9102]
+            NODE[Node Exporter<br/>Port 9100]
+            CADV[cAdvisor<br/>Port 8081]
+        end
+
         subgraph Admin & Testing
             PGA[pgAdmin 4<br/>Port 5051]
             LOC[Locust<br/>Port 8089]
@@ -53,6 +61,12 @@ graph TB
     WEB -->|HTTP calls| API
     LOC -->|Simulated traffic| API
     PGA -->|SQL admin| PG
+    API -->|/metrics| PROM
+    AF -->|StatsD UDP| STATSD
+    STATSD -->|Scrape| PROM
+    NODE -->|Scrape| PROM
+    CADV -->|Scrape| PROM
+    PROM -->|Data source| GRAF
 ```
 
 ## Service Details
@@ -117,6 +131,38 @@ graph TB
 - **Traffic mix**: 75% normal transactions, 25% fraud patterns
 - **Wait time**: 0.5–2 seconds between requests
 
+### Prometheus (Monitoring Stack)
+
+- **Image**: `prom/prometheus:latest` (custom Dockerfile)
+- **Role**: Metrics collection and storage
+- **Scrape targets**: FastAPI `/metrics`, StatsD exporter, Node exporter, cAdvisor, self
+- **Configuration**: `prometheus/prometheus.yml`
+- **Persistence**: Named volume `prometheus_data`
+- **Depends on**: API (healthy), Airflow (healthy), StatsD exporter, Node exporter, cAdvisor
+
+### Grafana (Monitoring Stack)
+
+- **Image**: `grafana/grafana:latest`
+- **Role**: Metrics visualization and dashboarding
+- **Data source**: Prometheus (auto-provisioned via `grafana/provisioning/datasources/datasource.yml`)
+- **Persistence**: Named volume `grafana_data`
+- **Depends on**: Prometheus
+
+### StatsD Exporter (Monitoring Stack)
+
+- **Image**: `prom/statsd-exporter:latest`
+- **Role**: Receives StatsD metrics from Airflow (UDP port 9125) and exposes them as Prometheus metrics (port 9102)
+
+### Node Exporter (Monitoring Stack)
+
+- **Image**: `prom/node-exporter:latest`
+- **Role**: Exports host-level system metrics (CPU, memory, disk, network)
+
+### cAdvisor (Monitoring Stack)
+
+- **Image**: `gcr.io/cadvisor/cadvisor:latest`
+- **Role**: Container-level resource usage and performance metrics
+
 ### pgAdmin (Admin)
 
 - **Role**: PostgreSQL administration UI
@@ -134,12 +180,17 @@ graph LR
     API --> WEB[Streamlit]
     API --> LOC[Locust]
     PG --> PGA[pgAdmin]
+    API --> PROM[Prometheus]
+    AF --> STATSD[StatsD Exporter] --> PROM
+    PROM --> GRAF[Grafana]
 
     style PG fill:#336791,color:#fff
     style ML fill:#0194E2,color:#fff
     style AF fill:#017CEE,color:#fff
     style API fill:#009688,color:#fff
     style WEB fill:#FF4B4B,color:#fff
+    style PROM fill:#E6522C,color:#fff
+    style GRAF fill:#F46800,color:#fff
 ```
 
 ## Data Flow
@@ -186,3 +237,8 @@ All services share a single Docker network. External access is via port mapping:
 | pgAdmin | 80 | 5051 | http://localhost:5051 |
 | LocalStack | 4566 | 4566 | http://localhost:4566 |
 | Locust | 8089 | 8089 | http://localhost:8089 |
+| Prometheus | 9090 | 9090 | http://localhost:9090 |
+| Grafana | 3000 | 3000 | http://localhost:3000 |
+| StatsD Exporter | 9102 | 9102 | — |
+| Node Exporter | 9100 | 9100 | — |
+| cAdvisor | 8080 | 8081 | http://localhost:8081 |

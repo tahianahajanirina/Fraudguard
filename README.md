@@ -183,13 +183,12 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 ### Prerequisites
 
 - **Docker** and **Docker Compose** v2 installed
-- **`creditcard.csv`** placed in a sibling directory:
+- **`creditcard.csv`** placed at `~/creditcard.csv` (sibling of the project directory):
 
 ```
-parent_directory/
-├── creditcard.csv/
-│   └── creditcard.csv        # Kaggle Credit Card Fraud Detection dataset
-└── Fraudguard/               # ← this repository
+~/
+├── creditcard.csv               # Kaggle Credit Card Fraud Detection dataset
+└── Fraudguard/                  # ← this repository
 ```
 
 > 📥 Download the dataset from [Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud).
@@ -204,9 +203,8 @@ cd Fraudguard
 # 2. Create environment file
 cp .env.example .env
 
-# 3. Build and start all services
-make up
-# or: docker compose up --build -d
+# 3. Build and start all services (requires Docker Compose v2)
+docker compose up --build -d
 
 # 4. Wait ~60-90 seconds for bootstrap
 #    (PostgreSQL, LocalStack S3 bucket, Airflow DB init)
@@ -478,9 +476,11 @@ make format              # Ruff formatting
 
 ## 👥 Authors
 
-**Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris**
+**Tahiana Hajanirina ANDRIAMBAHOAKA**
 
-Module **DATA713** — MLOps
+Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris
+
+Module DATA713 — MLOps
 
 ---
 

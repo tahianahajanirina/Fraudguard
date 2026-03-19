@@ -1,59 +1,130 @@
 <p align="center">
   <h1 align="center">🛡️ FraudGuard</h1>
   <p align="center">
-    <strong>Production-grade MLOps pipeline for credit card fraud detection</strong>
+    <strong>Pipeline MLOps complet pour la détection de fraude bancaire en temps réel</strong>
   </p>
   <p align="center">
-    <em>Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris — DATA713</em>
+    <em>Entraînement, comparaison et déploiement automatisés de modèles de détection de fraude</em>
   </p>
 </p>
 
 <p align="center">
   <a href="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml">
-    <img src="https://github.com/tahianahajanirina/Fraudguard/actions/workflows/api-k8s-cicd.yml/badge.svg?branch=develop" alt="CI/CD">
+    <img src="https://img.shields.io/github/actions/workflow/status/tahianahajanirina/Fraudguard/api-k8s-cicd.yml?branch=develop&style=for-the-badge&label=CI%2FCD" alt="CI/CD">
   </a>
-  <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11">
-  <img src="https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?logo=mlflow&logoColor=white" alt="MLflow">
-  <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow">
-  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker">
-  <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes">
-  <img src="https://img.shields.io/badge/License-Academic%20Use-blue.svg" alt="Academic Project">
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11">
+  <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/MLflow-2.11-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow">
+  <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white" alt="Airflow">
+  <img src="https://img.shields.io/badge/LightGBM-Gradient%20Boosting-02569B?style=for-the-badge&logo=microsoft&logoColor=white" alt="LightGBM">
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes">
+  <img src="https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus">
+  <img src="https://img.shields.io/badge/Grafana-Dashboards-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana">
+  <img src="https://img.shields.io/badge/Tests-63%20passed-brightgreen?style=for-the-badge" alt="Tests">
+  <img src="https://img.shields.io/badge/Licence-Academic%20Use-blue?style=for-the-badge" alt="Licence">
 </p>
 
 ---
 
-## 📋 Overview
+## 📋 À propos du projet
 
-**FraudGuard** is a complete MLOps pipeline that trains, compares, and deploys machine learning models for credit card fraud detection. It trains two models — **IsolationForest** (unsupervised) and **LightGBM** (supervised) — compares them on **AUC-PR**, promotes the winner to production via **MLflow**, and serves real-time predictions through a **FastAPI** endpoint with a **Streamlit** dashboard.
+**FraudGuard** est un pipeline MLOps de bout en bout conçu pour détecter les fraudes par carte bancaire en temps réel. Le système orchestre l'ensemble du cycle de vie ML — de l'ingestion des données au service de prédictions — avec un monitoring continu et un réentraînement automatique.
 
-The project demonstrates production-grade practices: experiment tracking, model registry, automated retraining with drift detection, containerized microservices, Kubernetes deployment, CI/CD pipelines, and load testing.
+1. **Entraînement parallèle** de deux modèles (IsolationForest et LightGBM) avec comparaison automatique sur la métrique AUC-PR
+2. **Registre de modèles** via MLflow avec promotion automatique du meilleur modèle en production
+3. **API de prédiction temps réel** avec scoring de risque (HIGH / MEDIUM / LOW) et support batch (jusqu'à 1 000 transactions)
+4. **Réentraînement continu** quotidien avec détection de dérive et surveillance des performances
+5. **Dashboard interactif** Streamlit pour la visualisation des KPIs, prédictions unitaires et par lot
+6. **Monitoring complet** Prometheus + Grafana + StatsD pour les métriques API et Airflow
+7. **Déploiement Kubernetes** avec overlays Kustomize (dev/prod) et pipeline CI/CD GitHub Actions
+8. **Tests de charge** Locust simulant des patterns de trafic réalistes
+
+<p align="center">
+  <img src="docs/screenshots/architecture.png" alt="Architecture FraudGuard" width="85%">
+</p>
+
+---
+
+## ✨ Fonctionnalités clés
+
+| Fonctionnalité | Description |
+|---|---|
+| **Compétition de modèles** | IsolationForest vs LightGBM comparés sur AUC-PR, la métrique adaptée aux données déséquilibrées (0.17% de fraude) |
+| **Tracking d'expériences** | Logging complet des métriques, paramètres et artefacts via MLflow |
+| **Registre de modèles** | Promotion automatique du gagnant en Production, le perdant en Staging |
+| **Réentraînement continu** | Surveillance quotidienne de la dégradation des performances et de la dérive des données |
+| **Prédictions temps réel** | Endpoint FastAPI avec scoring de risque tri-niveau |
+| **Prédictions par lot** | Upload CSV pour analyse groupée jusqu'à 1 000 transactions |
+| **Dashboard interactif** | Interface Streamlit avec KPIs, prédictions et métriques du modèle |
+| **Tests de charge** | Locust avec simulation de transactions normales (75%) et frauduleuses (25%) |
+| **Kubernetes Ready** | Overlays Kustomize pour environnements dev et prod |
+| **Pipeline CI/CD** | GitHub Actions : build, push GHCR, déploiement Kubernetes |
+| **Stockage S3** | LocalStack fournit un stockage S3-compatible pour tous les artefacts |
+| **Monitoring** | Prometheus + Grafana + StatsD + Node Exporter + cAdvisor |
 
 ---
 
 ## 🏗️ Architecture
 
-![Architecture](docs/screenshots/architecture.png)
+Le système est composé de **13 services Docker** interconnectés, orchestrés via Docker Compose :
 
-### ML Training Pipeline
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          FraudGuard Platform                            │
+│                                                                         │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐      │
+│  │  Airflow   │───▶│  MLflow   │───▶│ LocalStack│    │ PostgreSQL│      │
+│  │   :8080    │    │   :5000   │    │   :4566   │    │   :5432   │      │
+│  └─────┬─────┘    └───────────┘    └───────────┘    └───────────┘      │
+│        │ trigger                                                        │
+│        ▼                                                                │
+│  ┌───────────────────────────────────────────────────────┐             │
+│  │              ML Pipeline (DAG)                         │             │
+│  │  ingest_and_preprocess → [IsoForest, LightGBM] → register          │
+│  └───────────────────────────────────────────────────────┘             │
+│        │ model promu                                                    │
+│        ▼                                                                │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐                       │
+│  │    API     │◀──▶│  Webapp   │    │  Locust   │                       │
+│  │   :8000    │    │   :8501   │    │   :8089   │                       │
+│  └─────┬─────┘    └───────────┘    └───────────┘                       │
+│        │ /metrics                                                       │
+│        ▼                                                                │
+│  ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐      │
+│  │Prometheus  │───▶│  Grafana  │    │  StatsD   │    │  cAdvisor │      │
+│  │   :9090    │    │   :3000   │    │   :9102   │    │   :8081   │      │
+│  └───────────┘    └───────────┘    └───────────┘    └───────────┘      │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
-![ML Pipeline](docs/screenshots/ml_pipeline.png)
+### Pipeline d'entraînement ML
 
-### Continuous Retraining DAG
+<p align="center">
+  <img src="docs/screenshots/ml_pipeline.png" alt="Pipeline ML" width="75%">
+</p>
 
-![Retraining DAG](docs/screenshots/retraining_dag.png)
+### DAG de réentraînement continu
 
-The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production model's AUC-PR has dropped below **0.70** and whether the anomaly rate exceeds **5× the expected fraud rate** (data drift). If either condition is met, it triggers a full retraining via the `fraud_detection_pipeline` DAG.
+<p align="center">
+  <img src="docs/screenshots/retraining_dag.png" alt="DAG Réentraînement" width="75%">
+</p>
+
+Le DAG `fraud_retraining_ct` s'exécute **quotidiennement** et vérifie deux conditions :
+- **Dégradation des performances** — Si l'AUC-PR du modèle en production chute sous **0.70**
+- **Dérive des données** — Si le taux d'anomalies dépasse **5× le taux de fraude attendu**
+
+Si l'une des conditions est remplie, un réentraînement complet est déclenché automatiquement.
 
 ---
 
-## 📸 Screenshots
+## 📸 Captures d'écran
 
-| Airflow DAGs | MLflow Experiments |
+| Airflow DAGs | MLflow Expériences |
 |---|---|
 | ![Airflow](docs/screenshots/airflow.png) | ![MLflow](docs/screenshots/mlflow.png) |
 
-| FastAPI Docs | Streamlit Dashboard |
+| FastAPI Documentation | Dashboard Streamlit |
 |---|---|
 | ![API](docs/screenshots/api_docs.png) | ![Dashboard](docs/screenshots/streamlit_dashboard.png) |
 
@@ -67,219 +138,151 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 
 ---
 
-## ✨ Features
+## 🛠️ Stack technique
 
-- **Model Competition** — IsolationForest vs LightGBM compared on AUC-PR, the right metric for imbalanced data (0.17% fraud rate)
-- **Experiment Tracking** — Full metric, parameter, and artifact logging via MLflow
-- **Model Registry** — Automatic promotion of the best model to Production stage
-- **Continuous Training** — Daily monitoring for performance degradation and data drift with automatic retraining
-- **Real-Time Predictions** — FastAPI endpoint with risk scoring (HIGH / MEDIUM / LOW)
-- **Batch Predictions** — Upload CSVs for bulk fraud analysis (up to 1000 transactions)
-- **Interactive Dashboard** — Streamlit UI with KPIs, single/batch prediction, and model metrics
-- **Load Testing** — Locust-based load testing with realistic transaction patterns
-- **Kubernetes Ready** — Kustomize overlays for dev and prod environments
-- **CI/CD Pipeline** — GitHub Actions builds, pushes to GHCR, and deploys to Kubernetes
-- **S3 Artifact Storage** — LocalStack provides S3-compatible storage for all artifacts
-- **Monitoring Stack** — Prometheus + Grafana + StatsD exporter for API and Airflow metrics
-
----
-
-## 🛠️ Tech Stack
-
-| Tool | Version | Role |
-|------|---------|------|
-| **Python** | 3.11 | Language across all services |
-| **Apache Airflow** | 2.8 | DAG orchestration (LocalExecutor) |
-| **MLflow** | 2.11 | Experiment tracking & Model Registry |
-| **FastAPI** | 0.110 | REST prediction service |
-| **Streamlit** | 1.32 | Dashboard UI |
-| **LightGBM** | latest | Supervised fraud classifier |
-| **scikit-learn** | latest | IsolationForest + preprocessing |
-| **PostgreSQL** | 14 | Metadata store (Airflow + MLflow) |
-| **LocalStack** | 3 | S3-compatible artifact storage |
-| **Prometheus** | latest | Metrics collection & alerting |
-| **Grafana** | latest | Metrics visualization & dashboards |
-| **Docker Compose** | v2 | Local orchestration (13 services) |
-| **Kubernetes** | 1.28+ | Production deployment |
-| **Kustomize** | built-in | Environment overlays (dev/prod) |
-| **GitHub Actions** | — | CI/CD pipeline |
-| **Locust** | latest | Load testing |
-| **uv** | latest | Fast Python package management |
-| **Ruff** | latest | Linting & formatting |
+| Composant | Technologie | Rôle |
+|-----------|-------------|------|
+| **Langage** | Python 3.11 | Langage principal de tous les services |
+| **Orchestration ML** | Apache Airflow 2.8 | Exécution des DAGs avec LocalExecutor |
+| **Tracking ML** | MLflow 2.11 | Suivi d'expériences et registre de modèles |
+| **Modèle supervisé** | LightGBM 4.3 | Classificateur gradient boosting |
+| **Modèle non-supervisé** | scikit-learn (IsolationForest) | Détection d'anomalies comme baseline |
+| **Rééchantillonnage** | imbalanced-learn (SMOTE) | Gestion du déséquilibre de classes |
+| **API de prédiction** | FastAPI 0.110 | Service REST haute performance |
+| **Dashboard** | Streamlit 1.32 | Interface utilisateur interactive |
+| **Base de données** | PostgreSQL 14 | Métadonnées Airflow et MLflow |
+| **Stockage artefacts** | LocalStack 3 (S3) | Stockage S3-compatible pour les modèles |
+| **Monitoring** | Prometheus + Grafana | Collecte et visualisation des métriques |
+| **Métriques Airflow** | StatsD Exporter | Export des métriques Airflow vers Prometheus |
+| **Métriques système** | Node Exporter + cAdvisor | Métriques host et conteneurs |
+| **Tests de charge** | Locust | Simulation de trafic réaliste |
+| **Conteneurisation** | Docker Compose v2 | Orchestration locale (13 services) |
+| **Orchestration K8s** | Kubernetes (k3s) | Déploiement production |
+| **Configuration K8s** | Kustomize | Overlays dev et prod |
+| **CI/CD** | GitHub Actions | Build, push et déploiement automatisés |
+| **Gestion de paquets** | uv | Installation rapide des dépendances Python |
+| **Linting** | Ruff | Linting et formatage du code |
 
 ---
 
-## 🚀 Getting Started
+## 📊 Source de données
 
-### Prerequisites
+| Propriété | Valeur |
+|-----------|--------|
+| **Dataset** | [Credit Card Fraud Detection](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud) (Kaggle) |
+| **Transactions** | 284 807 |
+| **Fraudes** | 492 (0.173%) |
+| **Features** | V1–V28 (PCA), Amount |
+| **Feature supprimée** | Time (non pertinente) |
+| **Prétraitement** | StandardScaler sur Amount, split stratifié 80/20, sauvegarde Parquet |
 
-#### For Docker Compose (local dev/demo)
-
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| Docker Engine | 24+ | [Install](https://docs.docker.com/engine/install/) |
-| Docker Compose | v2.20+ | Bundled with Docker Desktop |
-| RAM | 8 GB+ | 6 GB minimum |
-| Disk | 20 GB+ | For images + data |
-| OS | Linux / macOS / Windows (WSL2) | |
-
-#### For Kubernetes (production)
-
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| k3s | v1.28+ | [Install](https://k3s.io/) — `curl -sfL https://get.k3s.io \| sudo sh -` |
-| kubectl | v1.28+ | Bundled with k3s |
-| RAM | 8 GB+ | |
-| Disk | **50 GB+** | k3s duplicates images in its own containerd runtime |
-| OS | Linux only | k3s does not support macOS/Windows natively |
-
-> ⚠️ **Disk requirement for K8s:** The project images total ~6 GB. k3s stores a separate copy in its containerd runtime (`/var/lib/rancher/k3s/`), so you need at least 50 GB of free disk space for a comfortable deployment.
-
-#### Dataset
-
-- **`creditcard.csv`** placed at `~/creditcard.csv` (sibling of the project directory):
+Le dataset `creditcard.csv` doit être placé dans le répertoire parent du projet :
 
 ```
 ~/
-├── creditcard.csv               # Kaggle Credit Card Fraud Detection dataset
-└── Fraudguard/                  # ← this repository
-```
-
-> 📥 Download the dataset from [Kaggle](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud).
-
-### Installation & Launch
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/tahianahajanirina/Fraudguard.git
-cd Fraudguard
-
-# 2. Create environment file
-cp .env.example .env
-
-# 3. Build and start all services (requires Docker Compose v2)
-docker compose up --build -d
-
-# 4. Wait ~60-90 seconds for bootstrap
-#    (PostgreSQL, LocalStack S3 bucket, Airflow DB init)
-
-# 5. Open Airflow UI and trigger the pipeline
-#    http://localhost:8080 — login: admin/admin
-#    Unpause and trigger the "fraud_detection_pipeline" DAG
-
-# 6. Monitor the run (~5 minutes)
-#    The pipeline trains both models and promotes the winner
-
-# 7. Access the services
-#    API:       http://localhost:8000/docs
-#    Dashboard: http://localhost:8501
-#    MLflow:    http://localhost:5000
-#    pgAdmin:   http://localhost:5051
-#    Prometheus: http://localhost:9090
-#    Grafana:   http://localhost:3000 (admin/admin)
-#    Locust:    http://localhost:8089
-```
-
-### Stopping
-
-```bash
-make down          # Stop containers (keep data)
-make down-clean    # Stop containers + remove volumes
+├── creditcard.csv               # Dataset Kaggle
+└── Fraudguard/                  # ← ce dépôt
 ```
 
 ---
 
-## 📁 Project Structure
+## 🤖 Machine Learning en détail
+
+### Deux modèles en compétition
+
+| Modèle | Type | Approche | Forces |
+|--------|------|----------|--------|
+| **IsolationForest** | Non-supervisé | Détection d'anomalies | Pas besoin de labels, détecte des patterns de fraude inédits |
+| **LightGBM** | Supervisé | Gradient boosting | Haute précision, apprend des exemples labellisés |
+
+### Hyperparamètres
+
+**IsolationForest** :
+- `n_estimators=200`
+- `contamination` = taux de fraude réel (~0.0017)
+- `max_samples=auto`
+
+**LightGBM** :
+- `boosting_type=gbdt`
+- `num_leaves=63`
+- `learning_rate=0.05`
+- `n_estimators=1000`
+- `scale_pos_weight` = calculé automatiquement selon le déséquilibre de classes
+
+### Pourquoi l'AUC-PR ?
+
+Avec seulement **0.17% de fraude**, l'accuracy et le ROC-AUC sont trompeurs — un modèle prédisant systématiquement "pas fraude" atteint 99.83% d'accuracy. L'**AUC-PR (Average Precision Score)** se concentre sur la classe minoritaire et constitue la métrique appropriée pour les datasets fortement déséquilibrés.
+
+### Résultats du modèle en production (LightGBM)
+
+| Métrique | Valeur |
+|----------|--------|
+| **AUC-PR** | 0.567 |
+| **F1-Score** | 0.711 |
+| **ROC-AUC** | 0.887 |
+
+### Pipeline d'entraînement
 
 ```
-Fraudguard/
-├── airflow/                          # Airflow service
-│   ├── dags/
-│   │   ├── fraud_pipeline.py         # Main training pipeline (4 tasks)
-│   │   └── fraud_retraining_ct.py    # Daily continuous training DAG
-│   ├── Dockerfile
-│   └── pyproject.toml
-├── api/                              # FastAPI service
-│   ├── main.py                       # Endpoints: predict, predict_batch, health, model_metrics
-│   ├── Dockerfile
-│   └── pyproject.toml
-├── webapp/                           # Streamlit dashboard
-│   ├── app.py                        # Entry point
-│   ├── config.py                     # Global configuration
-│   ├── pages/                        # Dashboard, Single Prediction, Batch, Metrics
-│   ├── components/                   # Reusable UI components
-│   ├── api/                          # HTTP client for backend
-│   ├── styles/                       # CSS theming
-│   └── Dockerfile
-├── mlflow/                           # MLflow server
-│   └── Dockerfile
-├── prometheus/                       # Prometheus monitoring
-│   ├── Dockerfile
-│   └── prometheus.yml                # Scrape targets config
-├── grafana/                          # Grafana dashboards
-│   └── provisioning/
-│       └── datasources/              # Auto-provisioned Prometheus datasource
-├── tests/                            # Integration tests
-│   ├── test_api.py                   # API endpoint tests
-│   ├── test_preprocessing.py         # Data pipeline tests
-│   ├── test_model.py                 # Model training tests
-│   ├── test_pipeline.py              # End-to-end DAG tests
-│   └── conftest.py                   # Shared fixtures
-├── load_tests/
-│   └── locustfile.py                 # Locust load testing
-├── k8s/                              # Kubernetes manifests
-│   ├── api/                          # Base API resources
-│   ├── platform/                     # Platform services (postgres, mlflow, airflow, etc.)
-│   └── overlays/
-│       ├── dev/                      # Dev overlay (1 replica)
-│       └── prod/                     # Prod overlay (2 replicas)
-├── conception/                       # Architecture diagrams
-├── .github/workflows/
-│   └── api-k8s-cicd.yml             # CI/CD pipeline
-├── docker-compose.yml                # Local orchestration (13 services)
-├── Makefile                          # Development commands
-├── deploy-k8s.sh                     # K8s deployment script
-└── pyproject.toml                    # Root config (Ruff)
+1. Ingestion & Prétraitement
+   └─▶ Chargement CSV → Suppression Time → StandardScaler sur Amount
+       → Split stratifié 80/20 → Sauvegarde Parquet + Upload S3
+
+2. Entraînement parallèle
+   ├─▶ IsolationForest (logging MLflow : métriques, params, matrice de confusion)
+   └─▶ LightGBM (logging MLflow : métriques, params, feature importance)
+
+3. Comparaison & Enregistrement
+   └─▶ Comparaison AUC-PR → Gagnant promu en Production → Perdant en Staging
 ```
+
+### Réentraînement continu
+
+Le DAG `fraud_retraining_ct` tourne **quotidiennement** et effectue deux vérifications :
+
+1. **Check de performance** — Interroge MLflow pour l'AUC-PR du modèle en Production. Si < **0.70**, réentraînement déclenché.
+2. **Check de dérive** — Exécute IsolationForest sur le jeu de test. Si le taux d'anomalies dépasse **5× le taux de fraude attendu**, dérive détectée.
 
 ---
 
-## 📡 API Reference
+## 🐳 Infrastructure Docker
 
-Base URL: `http://localhost:8000`
+### Services et ports
 
-### `GET /`
+| Service | Port | Rôle |
+|---------|------|------|
+| **PostgreSQL** | 5432 | Base de métadonnées Airflow et MLflow |
+| **MLflow** | 5000 | Tracking d'expériences et registre de modèles |
+| **Airflow** | 8080 | Orchestration des DAGs (LocalExecutor) |
+| **API (FastAPI)** | 8000 | Service de prédiction REST |
+| **Webapp (Streamlit)** | 8501 | Dashboard interactif |
+| **pgAdmin** | 5051 | Administration PostgreSQL |
+| **LocalStack** | 4566 | Stockage S3-compatible pour artefacts |
+| **Prometheus** | 9090 | Collecte et agrégation de métriques |
+| **Grafana** | 3000 | Visualisation de métriques et dashboards |
+| **StatsD Exporter** | 9102 / 9125 | Export des métriques StatsD vers Prometheus |
+| **Node Exporter** | 9100 | Métriques système du host |
+| **cAdvisor** | 8081 | Métriques des conteneurs Docker |
+| **Locust** | 8089 | Interface de tests de charge |
 
-Returns project metadata.
+---
 
-```bash
-curl http://localhost:8000/
-```
+## 📡 Référence API
 
-### `GET /health`
+Base URL : `http://localhost:8000`
 
-Health check — returns model status, MLflow connection, and scaler state.
+### Endpoints
 
-```bash
-curl http://localhost:8000/health
-```
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| `GET` | `/` | Métadonnées du projet |
+| `GET` | `/health` | État de santé (modèle, MLflow, scaler) |
+| `POST` | `/predict` | Prédiction unitaire avec scoring de risque |
+| `POST` | `/predict_batch` | Prédictions par lot (max 1 000 transactions) |
+| `GET` | `/model_metrics` | Métriques du modèle en production |
+| `GET` | `/metrics` | Endpoint Prometheus |
 
-```json
-{
-  "status": "healthy",
-  "model_loaded": true,
-  "model_name": "lightgbm_fraud",
-  "model_version": "2",
-  "model_score": 0.5676,
-  "model_stage": "Production",
-  "mlflow_uri": "http://mlflow:5000",
-  "scaler_loaded": true
-}
-```
-
-### `POST /predict`
-
-Single transaction prediction.
+### Exemple de prédiction
 
 ```bash
 curl -X POST http://localhost:8000/predict \
@@ -306,183 +309,255 @@ curl -X POST http://localhost:8000/predict \
 }
 ```
 
-### `POST /predict_batch`
+### Niveaux de risque
 
-Batch predictions (max 1000 transactions).
+| Niveau | Probabilité | Signification |
+|--------|------------|---------------|
+| **HIGH** | > 0.7 | Transaction très suspecte |
+| **MEDIUM** | 0.3 – 0.7 | Transaction à surveiller |
+| **LOW** | < 0.3 | Transaction normale |
+
+---
+
+## 🚀 Guide de démarrage
+
+### Prérequis
+
+| Requis | Version | Notes |
+|--------|---------|-------|
+| Docker Engine | 24+ | [Installer](https://docs.docker.com/engine/install/) |
+| Docker Compose | v2.20+ | Inclus avec Docker Desktop |
+| RAM | 8 Go+ | 6 Go minimum |
+| Disque | 20 Go+ | Pour les images et données |
+| OS | Linux / macOS / Windows (WSL2) | |
+
+### Installation
 
 ```bash
-curl -X POST http://localhost:8000/predict_batch \
-  -H "Content-Type: application/json" \
-  -d '{"transactions": [{"V1": -1.35, ..., "Amount": 149.62}]}'
+# 1. Cloner le dépôt
+git clone https://github.com/tahianahajanirina/Fraudguard.git
+cd Fraudguard
+
+# 2. Créer le fichier d'environnement
+cp .env.example .env
+
+# 3. Placer le dataset (si pas déjà fait)
+# Télécharger creditcard.csv depuis Kaggle et le placer dans ~/creditcard.csv
+
+# 4. Construire et lancer tous les services
+make up
+# ou : docker compose up --build -d
+
+# 5. Attendre ~60-90 secondes pour le bootstrap
+# (PostgreSQL, bucket S3 LocalStack, init Airflow)
+
+# 6. Ouvrir l'UI Airflow et déclencher le pipeline
+#    http://localhost:8080 — identifiants : admin/admin
+#    Activer et déclencher le DAG "fraud_detection_pipeline"
+
+# 7. Le pipeline s'exécute en ~5 minutes
+#    Entraîne les deux modèles et promeut le gagnant
 ```
 
-### `GET /model_metrics`
+### Accès aux services
 
-Returns production model evaluation metrics (precision, recall, F1, ROC-AUC, AUC-PR).
+| Service | URL | Identifiants |
+|---------|-----|-------------|
+| **API (Swagger)** | http://localhost:8000/docs | — |
+| **Dashboard** | http://localhost:8501 | — |
+| **Airflow** | http://localhost:8080 | admin / admin |
+| **MLflow** | http://localhost:5000 | — |
+| **Grafana** | http://localhost:3000 | admin / admin |
+| **Prometheus** | http://localhost:9090 | — |
+| **pgAdmin** | http://localhost:5051 | — |
+| **Locust** | http://localhost:8089 | — |
+
+### Arrêt
 
 ```bash
-curl http://localhost:8000/model_metrics
-```
-
-### `GET /metrics`
-
-Prometheus metrics endpoint — exposes request counts, latency histograms, and prediction counters.
-
-```bash
-curl http://localhost:8000/metrics
+make down          # Arrêter les conteneurs (conserver les données)
+make down-clean    # Arrêter les conteneurs + supprimer les volumes
 ```
 
 ---
 
-## 🤖 ML Models
+## 📁 Structure du projet
 
-### Why Two Models?
-
-| Model | Type | Approach | Strengths |
-|-------|------|----------|-----------|
-| **IsolationForest** | Unsupervised | Anomaly detection baseline | No labels needed, detects novel fraud patterns |
-| **LightGBM** | Supervised | Gradient boosting classifier | High precision, learns from labeled examples |
-
-### Hyperparameters
-
-**IsolationForest**: `n_estimators=200`, `contamination` = actual fraud rate (~0.0017)
-
-**LightGBM**: `num_leaves=63`, `learning_rate=0.05`, `scale_pos_weight` auto-calculated from class imbalance
-
-### Why AUC-PR?
-
-With only **0.17% fraud** in the dataset, accuracy and ROC-AUC are misleading — a model predicting "not fraud" for everything achieves 99.83% accuracy. **AUC-PR (Average Precision Score)** focuses on the minority class and is the correct metric for heavily imbalanced datasets. The model with the higher AUC-PR is promoted to Production; the other goes to Staging.
-
-### Pipeline Details
-
-1. **Ingest & Preprocess**: Load CSV → drop `Time` column → StandardScaler on `Amount` → 80/20 stratified split → save as Parquet
-2. **Train**: Both models train in parallel, logging metrics/params/artifacts to MLflow
-3. **Compare & Register**: AUC-PR comparison → winner promoted to Production in MLflow Model Registry
-
----
-
-## 🔄 Continuous Training
-
-The `fraud_retraining_ct` DAG runs **daily** and performs two checks:
-
-1. **Performance Check** — Queries MLflow for the Production model's AUC-PR. If below **0.70**, retraining is triggered.
-2. **Data Drift Check** — Runs IsolationForest on the test set. If the anomaly rate exceeds **5× the expected fraud rate**, drift is detected.
-
-If either condition is met, the DAG triggers a full execution of `fraud_detection_pipeline`, which retrains both models, compares them, and promotes the new winner.
+| Répertoire / Fichier | Contenu |
+|---|---|
+| `airflow/dags/fraud_pipeline.py` | Pipeline principal d'entraînement (4 tâches) |
+| `airflow/dags/fraud_retraining_ct.py` | DAG de réentraînement continu quotidien |
+| `airflow/Dockerfile` | Image Airflow avec dépendances ML |
+| `api/main.py` | Endpoints FastAPI : predict, predict_batch, health, model_metrics, metrics |
+| `api/Dockerfile` | Image API de prédiction |
+| `webapp/app.py` | Point d'entrée Streamlit |
+| `webapp/pages/` | Pages : Dashboard, Prédiction unitaire, Batch, Métriques |
+| `webapp/components/` | Composants UI réutilisables (sidebar, charts, formulaires) |
+| `webapp/api/client.py` | Client HTTP pour communiquer avec le backend |
+| `mlflow/Dockerfile` | Image du serveur MLflow |
+| `prometheus/prometheus.yml` | Configuration des scrape targets |
+| `grafana/provisioning/` | Datasources et dashboards auto-provisionnés |
+| `tests/` | Suite de tests (63 tests) |
+| `load_tests/locustfile.py` | Tests de charge Locust |
+| `k8s/api/` | Manifestes Kubernetes de base (Deployment, Service, ConfigMap) |
+| `k8s/platform/` | Services plateforme (PostgreSQL, MLflow, Airflow, Webapp, LocalStack) |
+| `k8s/overlays/dev/` | Overlay dev (1 réplica, namespace fraudguard-dev) |
+| `k8s/overlays/prod/` | Overlay prod (2 réplicas, namespace fraudguard-prod) |
+| `conception/` | Diagrammes d'architecture (drawio, png) |
+| `.github/workflows/` | Pipelines CI/CD (tests + déploiement K8s) |
+| `docker-compose.yml` | Orchestration locale (13 services) |
+| `deploy-k8s.sh` | Script de déploiement Kubernetes |
+| `Makefile` | Commandes de développement |
 
 ---
 
-## ☸️ Kubernetes Deployment
+## 🧪 Tests
 
-> **Note:** The Kubernetes manifests are production-ready and validated. Local deployment with k3s requires a machine with at least 50 GB of available disk space (the Docker images total ~6 GB, and k3s needs additional space for its own container runtime). For demo purposes, Docker Compose is used to run all services locally.
+Le projet dispose de **63 tests** couvrant l'ensemble du pipeline :
 
-### Orchestrator: k3s
+| Fichier | Scope | Tests |
+|---------|-------|-------|
+| `tests/test_api.py` | Logique de prédiction unitaire, chemins LightGBM et IsolationForest | 9 |
+| `tests/test_api_extended.py` | Endpoints API complets, gestion d'erreurs, cas limites | 23 |
+| `tests/test_preprocessing.py` | Ingestion, split stratifié, scaling, persistance du scaler | 5 |
+| `tests/test_model.py` | Réentraînement continu, branchements décisionnels, MLflow | 12 |
+| `tests/test_pipeline.py` | Comparaison et promotion de modèles, best_model.txt | 3 |
+| `tests/test_training.py` | Pipeline d'entraînement complet | 7 |
+| `tests/test_retraining_extended.py` | DAG de réentraînement continu | 4 |
+| `tests/conftest.py` | Fixtures partagées (app state, transactions, DataFrames) | — |
 
-The project targets [k3s](https://k3s.io/) — a lightweight, CNCF-certified Kubernetes distribution ideal for edge and resource-constrained environments. Installation:
+### Lancer les tests
 
 ```bash
+make test                # Tous les tests
+make test-api            # Tests API uniquement
+make test-preprocessing  # Tests prétraitement
+make test-model          # Tests modèle
+make test-pipeline       # Tests pipeline end-to-end
+
+make lint                # Linting Ruff
+make format              # Formatage Ruff
+```
+
+---
+
+## 📈 Monitoring
+
+### Architecture de monitoring
+
+Le stack de monitoring collecte des métriques à trois niveaux :
+
+| Composant | Port | Métriques collectées |
+|-----------|------|---------------------|
+| **Prometheus** | 9090 | Agrégation centrale, scrape toutes les 15s |
+| **Grafana** | 3000 | Dashboards de visualisation (datasource Prometheus auto-provisionné) |
+| **StatsD Exporter** | 9102 | Métriques Airflow (durée des tâches, succès/échecs) |
+| **Node Exporter** | 9100 | Métriques système (CPU, mémoire, disque, réseau) |
+| **cAdvisor** | 8081 | Métriques conteneurs Docker (usage ressources par service) |
+
+### Métriques API exposées
+
+L'endpoint `/metrics` de l'API expose les métriques suivantes pour Prometheus :
+
+| Métrique | Type | Description |
+|----------|------|-------------|
+| `api_requests_total` | Counter | Total des requêtes par endpoint/méthode/statut |
+| `api_errors_total` | Counter | Total des erreurs par endpoint |
+| `api_request_latency_seconds` | Histogram | Latence des requêtes |
+| `model_predictions_total` | Counter | Prédictions par endpoint et résultat |
+| `model_inference_latency_seconds` | Histogram | Latence d'inférence du modèle |
+
+---
+
+## 🔥 Tests de charge
+
+[Locust](https://locust.io/) simule des patterns de trafic réalistes contre l'API :
+
+| Scénario | Poids | Description |
+|----------|-------|-------------|
+| **Transaction normale** | 75% | Features caractéristiques d'une transaction légitime |
+| **Transaction frauduleuse** | 25% | Pattern à haut risque (montant faible, features extrêmes) |
+| **Health check** | Périodique | Surveillance de l'endpoint de santé |
+
+```bash
+# Déjà inclus dans docker-compose
+docker compose up locust
+
+# Accéder à l'interface Locust
+# http://localhost:8089
+```
+
+---
+
+## ☸️ Déploiement Kubernetes
+
+### Orchestrateur : k3s
+
+Le projet cible [k3s](https://k3s.io/) — une distribution Kubernetes légère et certifiée CNCF.
+
+```bash
+# Installation k3s
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--docker --disable=traefik --write-kubeconfig-mode=644" sudo sh -
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 ```
 
-### Manifests Structure
+> **Espace disque :** Les images Docker totalisent ~6 Go. k3s en stocke une copie séparée dans son runtime containerd, prévoyez au minimum **50 Go** d'espace disque libre.
 
-```
-k8s/
-├── api/                    # Base: Deployment, Service, ConfigMap
-├── platform/               # PostgreSQL, MLflow, Airflow, Webapp, LocalStack
-└── overlays/
-    ├── dev/                # 1 replica, lighter resources, fraudguard-dev namespace
-    └── prod/               # 2 replicas, stricter limits, fraudguard-prod namespace
-```
+### Services exposés via NodePort
 
-All services expose **NodePort** endpoints for external access:
-
-| Service | NodePort | Internal Port |
-|---------|----------|---------------|
+| Service | NodePort | Port interne |
+|---------|----------|-------------|
 | API | 30000 | 8000 |
 | Airflow | 30001 | 8080 |
 | MLflow | 30002 | 5000 |
 | Webapp | 30003 | 8501 |
 
-### Deploy
+### Déployer
 
 ```bash
-# Dev environment (k3s required, min 50 GB disk)
-kubectl apply -k k8s/overlays/dev/
+# Environnement dev
+make k8s-deploy-dev
+# ou : kubectl apply -k k8s/overlays/dev/
 
-# Verify
+# Vérifier
 kubectl -n fraudguard-dev get pods
 kubectl -n fraudguard-dev get svc
 
-# Production environment
-kubectl apply -k k8s/overlays/prod/
+# Environnement production
+make k8s-deploy-prod
+# ou : kubectl apply -k k8s/overlays/prod/
 ```
 
-### CI/CD Pipeline
+### Pipeline CI/CD
 
-The GitHub Actions workflow (`.github/workflows/api-k8s-cicd.yml`):
+Le workflow GitHub Actions (`.github/workflows/api-k8s-cicd.yml`) :
 
-1. **Builds** Docker images for all services (API, Airflow, MLflow, Webapp)
-2. **Pushes** to GitHub Container Registry (GHCR)
-3. **Deploys** to Kubernetes via a self-hosted runner
+1. **Build** des images Docker (API, Airflow, MLflow, Webapp)
+2. **Push** vers GitHub Container Registry (GHCR)
+3. **Déploiement** sur Kubernetes via un runner self-hosted
 
-| Branch | Environment | Namespace |
-|--------|------------|-----------|
+| Branche | Environnement | Namespace |
+|---------|--------------|-----------|
 | `develop` | Dev | `fraudguard-dev` |
 | `main` | Prod | `fraudguard-prod` |
 
 ---
 
-## 🔥 Load Testing
+## 👥 Auteurs
 
-[Locust](https://locust.io/) simulates realistic traffic patterns against the API:
-
-- **Normal transactions** (75% of traffic) — legitimate transaction features
-- **Fraud transactions** (25% of traffic) — suspicious high-risk patterns
-- **Health checks** — periodic endpoint monitoring
-
-```bash
-# Start with Docker Compose (already included)
-docker compose up locust
-
-# Access Locust UI
-open http://localhost:8089
-```
-
----
-
-## 🧪 Testing
-
-```bash
-make test                # Run all tests
-make test-api            # API endpoint tests
-make test-preprocessing  # Data pipeline tests
-make test-model          # Model training tests
-make test-pipeline       # End-to-end DAG tests
-
-make lint                # Ruff linting
-make format              # Ruff formatting
-```
-
----
-
-## 👥 Authors
-
-| Name | GitHub |
-|------|--------|
-| **Tahiana Hajanirina Andriambahoaka** | [@tahianahajanirina](https://github.com/tahianahajanirina) |
-| **Mohamed Amar** | — |
-| **Ahmed Fakhfakh** | [@Ahmedfekhfakh](https://github.com/Ahmedfekhfakh) |
-| **Oussama Bel Haj Rhouma** | — |
-| **Mohamed Khalil Ounis** | — |
-
-Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris
-
-Module DATA713 — MLOps
+| | Nom | GitHub |
+|---|---|---|
+| 👨‍💻 | **Tahiana Hajanirina Andriambahoaka** | [@tahianahajanirina](https://github.com/tahianahajanirina) |
+| 👨‍💻 | **Mohamed Amar** | — |
+| 👨‍💻 | **Ahmed Fakhfakh** | [@Ahmedfekhfakh](https://github.com/Ahmedfekhfakh) |
+| 👨‍💻 | **Oussama Bel Haj Rhouma** | — |
+| 👨‍💻 | **Mohamed Khalil Ounis** | — |
 
 ---
 
 <p align="center">
-  Built with ❤️ using Python, MLflow, Airflow, FastAPI, and Streamlit
+  <strong>Mastère Spécialisé Intelligence Artificielle</strong><br>
+  Télécom Paris — Institut Polytechnique de Paris<br>
+  Module DATA713 — MLOps<br><br>
+  Construit avec Python, MLflow, Airflow, FastAPI, Streamlit, Docker et Kubernetes
 </p>

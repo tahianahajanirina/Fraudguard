@@ -19,6 +19,7 @@ services:
   mlflow:
     build:
       context: ./mlflow
+      network: host
     restart: unless-stopped
     ports:
       - "${MLFLOW_PORT}:${MLFLOW_PORT}"
@@ -47,6 +48,7 @@ services:
   airflow:
     build:
       context: ./airflow
+      network: host
     restart: unless-stopped
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -104,6 +106,7 @@ services:
   api:
     build:
       context: ./api
+      network: host
     restart: unless-stopped
     environment:
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
@@ -130,6 +133,7 @@ services:
   webapp:
     build:
       context: ./webapp
+      network: host
     restart: unless-stopped
     environment:
       API_URL: http://api:8000

@@ -123,6 +123,22 @@ The `fraud_retraining_ct` DAG runs **daily**. It checks whether the production m
 
 ---
 
+## 📸 Screenshots
+
+| Airflow DAGs | MLflow Experiments |
+|---|---|
+| ![Airflow](docs/screenshots/airflow.png) | ![MLflow](docs/screenshots/mlflow.png) |
+
+| FastAPI Docs | Streamlit Dashboard |
+|---|---|
+| ![API](docs/screenshots/api_docs.png) | ![Dashboard](docs/screenshots/streamlit_dashboard.png) |
+
+| pgAdmin | Locust Load Testing |
+|---|---|
+| ![pgAdmin](docs/screenshots/pgadmin.png) | ![Locust](docs/screenshots/locust.png) |
+
+---
+
 ## ✨ Features
 
 - **Model Competition** — IsolationForest vs LightGBM compared on AUC-PR, the right metric for imbalanced data (0.17% fraud rate)

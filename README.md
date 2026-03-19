@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/Airflow-2.8-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow">
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker">
   <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+  <img src="https://img.shields.io/badge/License-Academic%20Use-blue.svg" alt="Academic Project">
 </p>
 
 ---
@@ -508,9 +508,13 @@ make format              # Ruff formatting
 
 ## 👥 Authors
 
-**Tahiana Hajanirina ANDRIAMBAHOAKA** — Project lead, ML pipeline, API, Streamlit dashboard, CI/CD, Kubernetes
-
-**Khalil** — Prometheus + Grafana monitoring stack, StatsD exporter, API metrics instrumentation
+| Name | GitHub |
+|------|--------|
+| **Tahiana Hajanirina Andriambahoaka** | [@tahianahajanirina](https://github.com/tahianahajanirina) |
+| **Mohamed Amar** | — |
+| **Ahmed Fakhfakh** | [@Ahmedfekhfakh](https://github.com/Ahmedfekhfakh) |
+| **Oussama Bel Haj Rhouma** | — |
+| **Mohamed Khalil Ounis** | — |
 
 Mastère Spécialisé IA — Télécom Paris, Institut Polytechnique de Paris
 

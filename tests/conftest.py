@@ -7,6 +7,20 @@ import pandas as pd
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def init_app_state():
+    """Initialize app.state before each test to avoid AttributeError."""
+    try:
+        from main import app
+        app.state.model = None
+        app.state.scaler = None
+        app.state.model_name = None
+        app.state.model_version = None
+        app.state.model_score = None
+    except ImportError:
+        pass  # Not in API container — skip
+
+
 @pytest.fixture()
 def sample_transaction() -> dict:
     """A valid transaction payload with V1-V28 + Amount."""

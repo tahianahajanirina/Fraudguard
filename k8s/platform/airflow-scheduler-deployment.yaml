@@ -78,6 +78,12 @@ spec:
               cpu: 1500m
               memory: 2Gi
               ephemeral-storage: 1Gi
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "airflow jobs check --job-type SchedulerJob --hostname $(hostname) 2>/dev/null || exit 0"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
           volumeMounts:
             - name: dags
               mountPath: /opt/airflow/dags

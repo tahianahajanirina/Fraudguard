@@ -2,6 +2,10 @@ services:
   postgres:
     image: postgres:14-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -21,6 +25,10 @@ services:
       context: ./mlflow
       network: host
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     ports:
       - "${MLFLOW_PORT}:${MLFLOW_PORT}"
     environment:
@@ -50,6 +58,10 @@ services:
       context: ./airflow
       network: host
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
@@ -66,6 +78,7 @@ services:
       AIRFLOW__METRICS__STATSD_HOST: statsd-exporter
       AIRFLOW__METRICS__STATSD_PORT: 9125
       AIRFLOW__METRICS__STATSD_PREFIX: airflow
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
     volumes:
       - ../creditcard.csv:/opt/airflow/data:ro
       - ./airflow/dags:/opt/airflow/dags
@@ -114,6 +127,10 @@ services:
       context: ./api
       network: host
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     environment:
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
       MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
@@ -128,10 +145,10 @@ services:
       - "${API_PORT}:8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 15s
+      retries: 15
+      start_period: 60s
     depends_on:
       mlflow:
         condition: service_healthy
@@ -203,7 +220,8 @@ services:
           sleep 2
         done
         aws --endpoint-url=http://localstack:4566 s3 mb s3://${MLFLOW_S3_BUCKET} || true
-        echo "localstack bucket ready: ${MLFLOW_S3_BUCKET}"
+        aws --endpoint-url=http://localstack:4566 s3 mb s3://data || true
+        echo "localstack buckets ready: ${MLFLOW_S3_BUCKET}, data"
 
   prometheus:
     build:

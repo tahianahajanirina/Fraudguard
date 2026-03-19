@@ -3,12 +3,14 @@ kind: Job
 metadata:
   name: localstack-init
 spec:
+  backoffLimit: 4
+  activeDeadlineSeconds: 120
   template:
     spec:
       restartPolicy: OnFailure
       containers:
         - name: init
-          image: amazon/aws-cli:latest
+          image: amazon/aws-cli:2.22.19
           command:
             - /bin/sh
             - -c
@@ -20,6 +22,13 @@ spec:
               aws --endpoint-url=http://localstack:4566 s3 mb s3://mlflow || true
               aws --endpoint-url=http://localstack:4566 s3 mb s3://data || true
               echo "localstack buckets ready: mlflow, data"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
           env:
             - name: AWS_ACCESS_KEY_ID
               value: test

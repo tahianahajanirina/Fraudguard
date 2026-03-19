@@ -256,12 +256,15 @@ def root() -> dict:
 
 @app.get("/health")
 def health() -> dict:
-    """Service health check."""
+    """Service health check with model status, version, and runtime info."""
     import os
 
     return {
-        "status": "ok",
+        "status": "healthy" if app.state.model is not None else "degraded",
+        "model_loaded": app.state.model is not None,
         "model_name": app.state.model_name,
+        "model_version": app.state.model_version,
+        "model_score": app.state.model_score,
         "model_stage": "Production",
         "mlflow_uri": os.getenv("MLFLOW_TRACKING_URI", "not set"),
         "scaler_loaded": app.state.scaler is not None,
@@ -331,8 +334,12 @@ def predict_batch(body: BatchRequest) -> dict:
         )
 
     try:
-        df = pd.DataFrame([tx.model_dump() for tx in body.transactions])
-        df["Amount"] = app.state.scaler.transform(df[["Amount"]])
+        transactions = body.transactions
+        if len(transactions) == 0:
+            return {"predictions": [], "total": 0, "fraud_count": 0, "fraud_rate": 0.0}
+
+        df = pd.DataFrame([tx.model_dump() for tx in transactions])
+        df["Amount"] = app.state.scaler.transform(df[["Amount"]]).flatten()
 
         predictions = []
         for _, row in df.iterrows():

@@ -9,4 +9,5 @@ spec:
     - name: http
       port: 8000
       targetPort: http
+      nodePort: 30000
   type: NodePort

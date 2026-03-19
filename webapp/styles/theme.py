@@ -45,11 +45,13 @@ PLOTLY_LAYOUT: dict = {
 # ---------------------------------------------------------------------------
 _CSS = f"""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Inter:wght@400;500;600;700&display=swap');
+
 /* ── Base ─────────────────────────────────────────────────────────────── */
 html, body, [data-testid="stAppViewContainer"] {{
     background-color: {COLOUR_BG_PAGE};
     color: {COLOUR_TEXT_PRIMARY};
-    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-family: 'Inter', 'Segoe UI', 'Noto Color Emoji', sans-serif;
 }}
 
 /* ── Sidebar ───────────────────────────────────────────────────────────── */

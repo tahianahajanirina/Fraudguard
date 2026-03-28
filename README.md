@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="docs/screenshots/hero.jpg" alt="FraudGuard" width="80%" style="border-radius:12px; margin-bottom:16px"/>
   <h1>🛡️ FraudGuard — Détection de Fraude Bancaire avec MLOps</h1>
   <p><b>Pipeline MLOps complet pour la détection de fraude bancaire en temps réel.</b></p>
   <p>

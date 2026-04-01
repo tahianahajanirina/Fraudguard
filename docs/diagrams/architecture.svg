@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -10 1200 680" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
-  <rect x="0" y="-10" width="1200" height="680" rx="12" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 800" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect x="0" y="0" width="1300" height="800" rx="12" fill="#ffffff"/>
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
       <path d="M0 0L10 5L0 10z" fill="#1e1e1e"/>
@@ -16,177 +16,179 @@
     <marker id="arr-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
       <path d="M0 0L10 5L0 10z" fill="#F46800"/>
     </marker>
+    <marker id="arr-mlops" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#0194E2"/>
+    </marker>
   </defs>
 
   <!-- Title -->
-  <text x="600" y="28" text-anchor="middle" font-size="22" font-weight="700" fill="#1e1e1e">FraudGuard — MLOps Architecture (13 Docker Services)</text>
+  <text x="650" y="30" text-anchor="middle" font-size="22" font-weight="700" fill="#1e1e1e">FraudGuard — MLOps Architecture (13 Docker Services)</text>
 
   <!-- ===== EXTERNAL LAYER ===== -->
-  <rect x="30" y="48" width="340" height="60" rx="10" fill="#f0f0f0" fill-opacity="0.5" stroke="#999" stroke-width="1"/>
-  <text x="42" y="64" font-size="11" fill="#555" font-weight="700" letter-spacing="1">EXTERNAL</text>
-  <rect x="45" y="72" width="120" height="28" rx="5" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
-  <text x="105" y="91" text-anchor="middle" font-size="12" font-weight="600" fill="#1e1e1e">User / Client</text>
-  <rect x="180" y="72" width="175" height="28" rx="5" fill="#fff3bf" stroke="#f59e0b" stroke-width="1.5"/>
-  <text x="268" y="91" text-anchor="middle" font-size="12" font-weight="600" fill="#1e1e1e">Kaggle creditcard.csv</text>
+  <rect x="30" y="52" width="580" height="65" rx="10" fill="#f0f0f0" fill-opacity="0.5" stroke="#999" stroke-width="1"/>
+  <text x="42" y="68" font-size="11" fill="#555" font-weight="700" letter-spacing="1">EXTERNAL</text>
+  <rect x="55" y="78" width="140" height="30" rx="5" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
+  <text x="125" y="98" text-anchor="middle" font-size="12" font-weight="600" fill="#1e1e1e">User / Client</text>
+  <rect x="250" y="78" width="190" height="30" rx="5" fill="#fff3bf" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="345" y="98" text-anchor="middle" font-size="12" font-weight="600" fill="#1e1e1e">Kaggle creditcard.csv</text>
 
   <!-- ===== SERVING LAYER ===== -->
-  <rect x="30" y="130" width="540" height="80" rx="10" fill="#e0f2f1" fill-opacity="0.4" stroke="#009688" stroke-width="1"/>
-  <text x="42" y="146" font-size="11" fill="#00695c" font-weight="700" letter-spacing="1">SERVING</text>
-  <rect x="55" y="155" width="220" height="38" rx="6" fill="#b2dfdb" stroke="#009688" stroke-width="1.5"/>
-  <text x="165" y="179" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">FastAPI :8000</text>
-  <rect x="300" y="155" width="250" height="38" rx="6" fill="#ffcdd2" stroke="#FF4B4B" stroke-width="1.5"/>
-  <text x="425" y="179" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">Streamlit :8501</text>
+  <rect x="30" y="145" width="580" height="80" rx="10" fill="#e0f2f1" fill-opacity="0.4" stroke="#009688" stroke-width="1"/>
+  <text x="42" y="161" font-size="11" fill="#00695c" font-weight="700" letter-spacing="1">SERVING</text>
+  <rect x="55" y="170" width="240" height="40" rx="6" fill="#b2dfdb" stroke="#009688" stroke-width="1.5"/>
+  <text x="175" y="195" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">FastAPI :8000</text>
+  <rect x="340" y="170" width="250" height="40" rx="6" fill="#ffcdd2" stroke="#FF4B4B" stroke-width="1.5"/>
+  <text x="465" y="195" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">Streamlit :8501</text>
 
   <!-- ===== ORCHESTRATION LAYER ===== -->
-  <rect x="30" y="232" width="540" height="100" rx="10" fill="#e3f2fd" fill-opacity="0.4" stroke="#017CEE" stroke-width="1"/>
-  <text x="42" y="248" font-size="11" fill="#017CEE" font-weight="700" letter-spacing="1">ORCHESTRATION</text>
-  <rect x="130" y="258" width="320" height="38" rx="6" fill="#bbdefb" stroke="#017CEE" stroke-width="1.5"/>
-  <text x="290" y="282" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">Apache Airflow :8080</text>
-  <rect x="90" y="302" width="190" height="22" rx="4" fill="#e3f2fd" stroke="#017CEE" stroke-width="1"/>
-  <text x="185" y="317" text-anchor="middle" font-size="10" fill="#017CEE">fraud_detection_pipeline</text>
-  <rect x="295" y="302" width="175" height="22" rx="4" fill="#e3f2fd" stroke="#017CEE" stroke-width="1"/>
-  <text x="383" y="317" text-anchor="middle" font-size="10" fill="#017CEE">fraud_retraining_ct</text>
+  <rect x="30" y="253" width="580" height="110" rx="10" fill="#e3f2fd" fill-opacity="0.4" stroke="#017CEE" stroke-width="1"/>
+  <text x="42" y="269" font-size="11" fill="#017CEE" font-weight="700" letter-spacing="1">ORCHESTRATION</text>
+  <rect x="130" y="278" width="350" height="40" rx="6" fill="#bbdefb" stroke="#017CEE" stroke-width="1.5"/>
+  <text x="305" y="303" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">Apache Airflow :8080</text>
+  <rect x="130" y="324" width="160" height="24" rx="4" fill="#e3f2fd" stroke="#017CEE" stroke-width="1"/>
+  <text x="210" y="340" text-anchor="middle" font-size="10" fill="#017CEE">fraud_detection_pipeline</text>
+  <rect x="310" y="324" width="160" height="24" rx="4" fill="#e3f2fd" stroke="#017CEE" stroke-width="1"/>
+  <text x="390" y="340" text-anchor="middle" font-size="10" fill="#017CEE">fraud_retraining_ct</text>
 
   <!-- ===== MLOPS LAYER ===== -->
-  <rect x="30" y="354" width="540" height="70" rx="10" fill="#e1f5fe" fill-opacity="0.4" stroke="#0194E2" stroke-width="1"/>
-  <text x="42" y="370" font-size="11" fill="#0194E2" font-weight="700" letter-spacing="1">MLOPS</text>
-  <rect x="150" y="378" width="280" height="38" rx="6" fill="#b3e5fc" stroke="#0194E2" stroke-width="1.5"/>
-  <text x="290" y="402" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">MLflow :5000</text>
-  <text x="290" y="416" text-anchor="middle" font-size="10" fill="#0194E2">Tracking + Model Registry</text>
+  <rect x="30" y="391" width="580" height="75" rx="10" fill="#e1f5fe" fill-opacity="0.4" stroke="#0194E2" stroke-width="1"/>
+  <text x="42" y="407" font-size="11" fill="#0194E2" font-weight="700" letter-spacing="1">MLOPS</text>
+  <rect x="165" y="413" width="280" height="40" rx="6" fill="#b3e5fc" stroke="#0194E2" stroke-width="1.5"/>
+  <text x="305" y="437" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">MLflow :5000</text>
+  <text x="305" y="451" text-anchor="middle" font-size="10" fill="#0194E2">Tracking + Model Registry</text>
 
   <!-- ===== DATA LAYER ===== -->
-  <rect x="30" y="446" width="540" height="80" rx="10" fill="#e8eaf6" fill-opacity="0.4" stroke="#336791" stroke-width="1"/>
-  <text x="42" y="462" font-size="11" fill="#336791" font-weight="700" letter-spacing="1">DATA LAYER</text>
-  <rect x="70" y="472" width="230" height="38" rx="6" fill="#bbcfe8" stroke="#336791" stroke-width="1.5"/>
-  <text x="185" y="496" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">PostgreSQL :5432</text>
-  <rect x="325" y="472" width="230" height="38" rx="6" fill="#ffe0b2" stroke="#FF9900" stroke-width="1.5"/>
-  <text x="440" y="496" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">LocalStack S3 :4566</text>
+  <rect x="30" y="494" width="580" height="85" rx="10" fill="#e8eaf6" fill-opacity="0.4" stroke="#336791" stroke-width="1"/>
+  <text x="42" y="510" font-size="11" fill="#336791" font-weight="700" letter-spacing="1">DATA LAYER</text>
+  <rect x="60" y="520" width="240" height="40" rx="6" fill="#bbcfe8" stroke="#336791" stroke-width="1.5"/>
+  <text x="180" y="545" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">PostgreSQL :5432</text>
+  <rect x="340" y="520" width="250" height="40" rx="6" fill="#ffe0b2" stroke="#FF9900" stroke-width="1.5"/>
+  <text x="465" y="545" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">LocalStack S3 :4566</text>
 
-  <!-- ===== MONITORING SIDEBAR ===== -->
-  <rect x="610" y="48" width="270" height="478" rx="10" fill="#fbe9e7" fill-opacity="0.35" stroke="#E6522C" stroke-width="1"/>
-  <text x="622" y="64" font-size="11" fill="#bf360c" font-weight="700" letter-spacing="1">MONITORING</text>
+  <!-- ===== MONITORING SIDEBAR (right) ===== -->
+  <rect x="640" y="52" width="290" height="510" rx="10" fill="#fbe9e7" fill-opacity="0.35" stroke="#E6522C" stroke-width="1"/>
+  <text x="652" y="68" font-size="11" fill="#bf360c" font-weight="700" letter-spacing="1">MONITORING</text>
 
-  <rect x="630" y="80" width="230" height="38" rx="6" fill="#ffccbc" stroke="#E6522C" stroke-width="1.5"/>
-  <text x="745" y="104" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Prometheus :9090</text>
+  <rect x="660" y="85" width="250" height="40" rx="6" fill="#ffccbc" stroke="#E6522C" stroke-width="1.5"/>
+  <text x="785" y="110" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Prometheus :9090</text>
 
-  <rect x="630" y="136" width="230" height="38" rx="6" fill="#ffe0b2" stroke="#F46800" stroke-width="1.5"/>
-  <text x="745" y="160" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Grafana :3000</text>
+  <rect x="660" y="150" width="250" height="40" rx="6" fill="#ffe0b2" stroke="#F46800" stroke-width="1.5"/>
+  <text x="785" y="175" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Grafana :3000</text>
 
-  <rect x="630" y="192" width="230" height="32" rx="5" fill="#fff3e0" stroke="#F46800" stroke-width="1"/>
-  <text x="745" y="213" text-anchor="middle" font-size="12" fill="#1e1e1e">StatsD Exporter :9102</text>
+  <rect x="660" y="220" width="250" height="34" rx="5" fill="#fff3e0" stroke="#F46800" stroke-width="1"/>
+  <text x="785" y="242" text-anchor="middle" font-size="12" fill="#1e1e1e">StatsD Exporter :9102</text>
 
-  <rect x="630" y="240" width="230" height="32" rx="5" fill="#fff3e0" stroke="#E6522C" stroke-width="1"/>
-  <text x="745" y="261" text-anchor="middle" font-size="12" fill="#1e1e1e">Node Exporter :9100</text>
+  <rect x="660" y="275" width="250" height="34" rx="5" fill="#fff3e0" stroke="#E6522C" stroke-width="1"/>
+  <text x="785" y="297" text-anchor="middle" font-size="12" fill="#1e1e1e">Node Exporter :9100</text>
 
-  <rect x="630" y="288" width="230" height="32" rx="5" fill="#fff3e0" stroke="#E6522C" stroke-width="1"/>
-  <text x="745" y="309" text-anchor="middle" font-size="12" fill="#1e1e1e">cAdvisor :8081</text>
+  <rect x="660" y="330" width="250" height="34" rx="5" fill="#fff3e0" stroke="#E6522C" stroke-width="1"/>
+  <text x="785" y="352" text-anchor="middle" font-size="12" fill="#1e1e1e">cAdvisor :8081</text>
 
-  <!-- Monitoring internal arrows -->
-  <!-- StatsD → Prometheus -->
-  <line x1="745" y1="224" x2="745" y2="118" stroke="#E6522C" stroke-width="1.5" marker-end="url(#arr-red)"/>
-  <!-- Node Exporter → Prometheus -->
-  <line x1="700" y1="240" x2="700" y2="118" stroke="#E6522C" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
-  <!-- cAdvisor → Prometheus -->
-  <line x1="660" y1="288" x2="660" y2="118" stroke="#E6522C" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+  <!-- Monitoring internal arrows — staggered X to avoid crossing -->
+  <!-- StatsD → Prometheus (center line) -->
+  <path d="M785 220 L785 125" fill="none" stroke="#E6522C" stroke-width="1.5" marker-end="url(#arr-red)"/>
+
+  <!-- Node Exporter → Prometheus (left offset) -->
+  <path d="M740 275 L740 125" fill="none" stroke="#E6522C" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+
+  <!-- cAdvisor → Prometheus (further left offset) -->
+  <path d="M700 330 L700 125" fill="none" stroke="#E6522C" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+
   <!-- Prometheus → Grafana -->
-  <line x1="790" y1="118" x2="790" y2="136" stroke="#F46800" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <path d="M830 125 L830 150" fill="none" stroke="#F46800" stroke-width="1.5" marker-end="url(#arr-orange)"/>
 
-  <!-- ===== ADMIN & TESTING SIDEBAR ===== -->
-  <rect x="920" y="48" width="250" height="478" rx="10" fill="#f5f5f5" fill-opacity="0.5" stroke="#999" stroke-width="1"/>
-  <text x="932" y="64" font-size="11" fill="#555" font-weight="700" letter-spacing="1">ADMIN &amp; TESTING</text>
+  <!-- ===== ADMIN & TESTING SIDEBAR (far right) ===== -->
+  <rect x="960" y="52" width="300" height="200" rx="10" fill="#f5f5f5" fill-opacity="0.5" stroke="#999" stroke-width="1"/>
+  <text x="972" y="68" font-size="11" fill="#555" font-weight="700" letter-spacing="1">ADMIN &amp; TESTING</text>
 
-  <rect x="940" y="84" width="210" height="38" rx="6" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
-  <text x="1045" y="108" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">pgAdmin :5051</text>
+  <rect x="985" y="88" width="250" height="40" rx="6" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
+  <text x="1110" y="113" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">pgAdmin :5051</text>
 
-  <rect x="940" y="140" width="210" height="38" rx="6" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
-  <text x="1045" y="164" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Locust :8089</text>
+  <rect x="985" y="148" width="250" height="40" rx="6" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
+  <text x="1110" y="173" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Locust :8089</text>
 
-  <!-- ===== CONNECTION ARROWS ===== -->
+  <!-- ===== CONNECTION ARROWS (elbow style) ===== -->
 
-  <!-- User → Streamlit -->
-  <line x1="105" y1="100" x2="380" y2="155" stroke="#1e1e1e" stroke-width="1.5" marker-end="url(#arr)"/>
-  <!-- User → FastAPI -->
-  <line x1="105" y1="100" x2="135" y2="155" stroke="#1e1e1e" stroke-width="1.5" marker-end="url(#arr)"/>
-  <!-- User → Airflow -->
-  <line x1="80" y1="100" x2="80" y2="258" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <text x="60" y="180" font-size="9" fill="#555" transform="rotate(-90 60 180)">UI</text>
+  <!-- User → FastAPI (straight down, elbow right) -->
+  <path d="M100 108 L100 130 Q100 140 110 140 L140 140 Q150 140 150 150 L150 170" fill="none" stroke="#1e1e1e" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <!-- Kaggle CSV → Airflow (volume mount) -->
-  <line x1="268" y1="100" x2="268" y2="258" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
-  <text x="275" y="200" font-size="9" fill="#92400e">volume mount</text>
+  <!-- User → Streamlit (elbow right then down) -->
+  <path d="M160 108 L160 130 Q160 140 170 140 L440 140 Q450 140 450 150 L450 170" fill="none" stroke="#1e1e1e" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <!-- Streamlit → FastAPI -->
-  <line x1="300" y1="174" x2="275" y2="174" stroke="#FF4B4B" stroke-width="1.5" marker-end="url(#arr)"/>
-  <text x="287" y="167" text-anchor="middle" font-size="9" fill="#555">REST</text>
 
-  <!-- FastAPI → MLflow (load model) — curved to avoid crossing Airflow zone -->
-  <path d="M100 193 L100 290 Q100 300 110 300 L140 300 Q150 300 150 310 L150 378 Q150 388 160 388 L215 388" fill="none" stroke="#009688" stroke-width="1.5" marker-end="url(#arr-green)"/>
-  <text x="70" y="290" font-size="9" fill="#009688">load model</text>
+  <!-- User → Airflow (far left elbow down) -->
+  <path d="M55 108 L55 130 Q55 140 55 150 L55 243 Q55 253 65 253 L120 253 Q130 253 130 263 L130 278" fill="none" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
 
-  <!-- FastAPI → LocalStack S3 (load scaler) — routed along right edge of main zone -->
-  <path d="M275 193 L275 220 Q275 230 285 230 L500 230 Q510 230 510 240 L510 460 Q510 470 500 470 L465 472" fill="none" stroke="#009688" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
-  <text x="518" y="360" font-size="9" fill="#009688">load scaler</text>
+  <!-- Kaggle CSV → Airflow (straight down with elbow) -->
+  <path d="M345 108 L345 235 Q345 245 335 245 L315 245 Q305 245 305 255 L305 278" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
 
-  <!-- Airflow → MLflow (log experiments) -->
-  <line x1="290" y1="332" x2="290" y2="378" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
-  <text x="298" y="358" font-size="9" fill="#017CEE">log experiments</text>
+  <!-- Streamlit → FastAPI (horizontal arrow) -->
+  <path d="M340 190 L295 190" fill="none" stroke="#FF4B4B" stroke-width="1.5" marker-end="url(#arr)"/>
 
-  <!-- Airflow → PostgreSQL (metadata) -->
-  <line x1="200" y1="332" x2="185" y2="472" stroke="#017CEE" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-blue)"/>
-  <text x="140" y="410" font-size="9" fill="#336791">metadata</text>
+  <!-- FastAPI → MLflow (load model — elbow left, down along outer edge, into MLOps) -->
+  <path d="M55 210 L55 230 Q55 240 45 240 L42 240 Q38 240 38 250 L38 405 Q38 415 48 415 L165 430" fill="none" stroke="#009688" stroke-width="1.5" marker-end="url(#arr-green)"/>
 
-  <!-- Airflow → LocalStack S3 (artifacts) -->
-  <line x1="380" y1="332" x2="440" y2="472" stroke="#017CEE" stroke-width="1.5" marker-end="url(#arr-blue)"/>
-  <text x="420" y="410" font-size="9" fill="#FF9900">artifacts</text>
+  <!-- FastAPI → LocalStack S3 (load scaler — elbow right side down) -->
+  <path d="M260 210 L260 230 Q260 240 270 240 L600 240 Q610 240 610 250 L610 508 Q610 518 600 518 L590 540" fill="none" stroke="#009688" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
 
-  <!-- MLflow → PostgreSQL -->
-  <line x1="240" y1="416" x2="210" y2="472" stroke="#0194E2" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <!-- MLflow → S3 -->
-  <line x1="340" y1="416" x2="390" y2="472" stroke="#0194E2" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- Airflow → MLflow (log experiments — straight down) -->
+  <path d="M305 348 L305 375 Q305 385 305 395 L305 413" fill="none" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
 
-  <!-- FastAPI/Airflow → StatsD → Prometheus -->
-  <line x1="275" y1="174" x2="630" y2="208" stroke="#E6522C" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr-red)"/>
-  <text x="460" y="182" font-size="9" fill="#E6522C">metrics</text>
+  <!-- Airflow → PostgreSQL (metadata — elbow down-left) -->
+  <path d="M200 348 L200 375 Q200 385 190 385 L180 385 Q170 385 170 395 L170 480 Q170 490 170 500 L170 520" fill="none" stroke="#017CEE" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-blue)"/>
 
-  <!-- pgAdmin → PostgreSQL — routed below main zone to avoid crossing -->
-  <path d="M940 110 L920 110 Q910 110 910 120 L910 540 Q910 550 900 550 L185 550 Q175 550 175 540 L175 510" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <text x="550" y="562" font-size="9" fill="#555">pgAdmin → PostgreSQL</text>
+  <!-- Airflow → LocalStack S3 (artifacts — elbow down-right) -->
+  <path d="M420 348 L420 375 Q420 385 430 385 L450 385 Q460 385 460 395 L460 480 Q460 490 460 500 L460 520" fill="none" stroke="#017CEE" stroke-width="1.5" marker-end="url(#arr-blue)"/>
 
-  <!-- Locust → FastAPI — routed above serving zone to avoid crossing monitoring -->
-  <path d="M940 150 L920 150 Q910 150 910 140 L910 40 Q910 30 900 30 L165 30 Q155 30 155 40 L155 155" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <text x="550" y="26" font-size="9" fill="#555">load test</text>
+  <!-- MLflow → PostgreSQL (dashed) -->
+  <path d="M240 453 L240 480 Q240 490 230 490 L210 490 Q200 490 200 500 L200 520" fill="none" stroke="#0194E2" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+  <!-- MLflow → S3 (dashed) -->
+  <path d="M370 453 L370 480 Q370 490 380 490 L400 490 Q410 490 410 500 L410 520" fill="none" stroke="#0194E2" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+  <!-- FastAPI → StatsD (metrics — horizontal right into monitoring) -->
+  <path d="M295 185 L610 185 Q620 185 620 195 L620 230 Q620 237 630 237 L660 237" fill="none" stroke="#E6522C" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr-red)"/>
+
+  <!-- Airflow → StatsD (metrics — horizontal right into monitoring) -->
+  <path d="M480 298 L610 298 Q620 298 620 308 L620 350 Q620 357 630 357 L660 347" fill="none" stroke="#E6522C" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr-red)"/>
+
+  <!-- pgAdmin → PostgreSQL (elbow: left, down, across bottom, up) -->
+  <path d="M985 108 L960 108 Q950 108 950 118 L950 690 Q950 700 940 700 L180 700 Q170 700 170 690 L170 560" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+  <!-- Locust → FastAPI (elbow: left, up, across top, down) -->
+  <path d="M985 168 L960 168 Q950 168 950 158 L950 45 Q950 38 940 38 L175 38 Q165 38 165 48 L165 170" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
 
   <!-- ===== LEGEND ===== -->
-  <rect x="30" y="548" width="1140" height="70" rx="8" fill="#fafafa" stroke="#ddd" stroke-width="1"/>
-  <text x="50" y="568" font-size="11" font-weight="700" fill="#1e1e1e">LEGEND</text>
+  <rect x="30" y="610" width="880" height="70" rx="8" fill="#fafafa" stroke="#ddd" stroke-width="1"/>
+  <text x="50" y="630" font-size="11" font-weight="700" fill="#1e1e1e">LEGEND</text>
 
   <!-- Solid line -->
-  <line x1="50" y1="590" x2="90" y2="590" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arr)"/>
-  <text x="98" y="594" font-size="10" fill="#555">Data flow</text>
+  <line x1="50" y1="652" x2="90" y2="652" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="98" y="656" font-size="10" fill="#555">Data flow</text>
 
   <!-- Dashed line -->
-  <line x1="200" y1="590" x2="240" y2="590" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <text x="248" y="594" font-size="10" fill="#555">Config / metadata</text>
+  <line x1="200" y1="652" x2="240" y2="652" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="248" y="656" font-size="10" fill="#555">Config / metadata</text>
 
   <!-- Color swatches -->
-  <rect x="400" y="582" width="14" height="14" rx="3" fill="#b2dfdb" stroke="#009688" stroke-width="1"/>
-  <text x="420" y="594" font-size="10" fill="#555">Serving</text>
+  <rect x="400" y="644" width="14" height="14" rx="3" fill="#b2dfdb" stroke="#009688" stroke-width="1"/>
+  <text x="420" y="656" font-size="10" fill="#555">Serving</text>
 
-  <rect x="490" y="582" width="14" height="14" rx="3" fill="#bbdefb" stroke="#017CEE" stroke-width="1"/>
-  <text x="510" y="594" font-size="10" fill="#555">Orchestration</text>
+  <rect x="490" y="644" width="14" height="14" rx="3" fill="#bbdefb" stroke="#017CEE" stroke-width="1"/>
+  <text x="510" y="656" font-size="10" fill="#555">Orchestration</text>
 
-  <rect x="610" y="582" width="14" height="14" rx="3" fill="#b3e5fc" stroke="#0194E2" stroke-width="1"/>
-  <text x="630" y="594" font-size="10" fill="#555">MLOps</text>
+  <rect x="610" y="644" width="14" height="14" rx="3" fill="#b3e5fc" stroke="#0194E2" stroke-width="1"/>
+  <text x="630" y="656" font-size="10" fill="#555">MLOps</text>
 
-  <rect x="700" y="582" width="14" height="14" rx="3" fill="#bbcfe8" stroke="#336791" stroke-width="1"/>
-  <text x="720" y="594" font-size="10" fill="#555">Data</text>
+  <rect x="700" y="644" width="14" height="14" rx="3" fill="#bbcfe8" stroke="#336791" stroke-width="1"/>
+  <text x="720" y="656" font-size="10" fill="#555">Data</text>
 
-  <rect x="770" y="582" width="14" height="14" rx="3" fill="#ffccbc" stroke="#E6522C" stroke-width="1"/>
-  <text x="790" y="594" font-size="10" fill="#555">Monitoring</text>
+  <rect x="770" y="644" width="14" height="14" rx="3" fill="#ffccbc" stroke="#E6522C" stroke-width="1"/>
+  <text x="790" y="656" font-size="10" fill="#555">Monitoring</text>
 
-  <rect x="890" y="582" width="14" height="14" rx="3" fill="#e0e0e0" stroke="#999" stroke-width="1"/>
-  <text x="910" y="594" font-size="10" fill="#555">Admin / Testing</text>
+  <rect x="880" y="644" width="14" height="14" rx="3" fill="#e0e0e0" stroke="#999" stroke-width="1"/>
+  <text x="900" y="656" font-size="10" fill="#555">Admin / Testing</text>
 
   <!-- Footer -->
-  <text x="600" y="650" text-anchor="middle" font-size="11" fill="#999">FraudGuard — MLOps Credit Card Fraud Detection Pipeline — 13 Docker Services</text>
+  <text x="650" y="760" text-anchor="middle" font-size="11" fill="#999">FraudGuard — MLOps Credit Card Fraud Detection Pipeline — 13 Docker Services</text>
 </svg>

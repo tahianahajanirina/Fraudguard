@@ -39,7 +39,7 @@
 8. **Tests de charge** Locust simulant des patterns de trafic réalistes
 
 <p align="center">
-  <img src="docs/screenshots/architecture.png" alt="Architecture FraudGuard" width="85%">
+  <a href="https://raw.githubusercontent.com/tahianahajanirina/Fraudguard/develop/docs/diagrams/architecture.svg"><img src="docs/diagrams/architecture.svg" alt="Architecture FraudGuard" width="85%"/></a>
 </p>
 
 ---
@@ -68,7 +68,7 @@
 Le système est composé de **13 services Docker** interconnectés, orchestrés via Docker Compose :
 
 <div align="center">
-  <img src="docs/architecture-services.png" alt="Architecture FraudGuard — 13 services Docker" width="90%" />
+  <a href="https://raw.githubusercontent.com/tahianahajanirina/Fraudguard/develop/docs/diagrams/architecture.svg"><img src="docs/diagrams/architecture.svg" alt="Architecture FraudGuard — 13 services Docker" width="90%"/></a>
 </div>
 
 ### Pipeline d'entraînement ML

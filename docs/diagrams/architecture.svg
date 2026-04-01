@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect x="0" y="0" width="1200" height="780" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#1e1e1e"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#017CEE"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#009688"/>
+    </marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#E6522C"/>
+    </marker>
+    <marker id="arr-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#F46800"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="28" text-anchor="middle" font-size="22" font-weight="700" fill="#1e1e1e">FraudGuard — MLOps Architecture (13 Docker Services)</text>
+
+  <!-- ===== EXTERNAL LAYER ===== -->
+  <rect x="30" y="48" width="340" height="60" rx="10" fill="#f0f0f0" fill-opacity="0.5" stroke="#999" stroke-width="1"/>
+  <text x="42" y="64" font-size="11" fill="#555" font-weight="700" letter-spacing="1">EXTERNAL</text>
+  <rect x="45" y="72" width="120" height="28" rx="5" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
+  <text x="105" y="91" text-anchor="middle" font-size="12" font-weight="600" fill="#1e1e1e">User / Client</text>
+  <rect x="180" y="72" width="175" height="28" rx="5" fill="#fff3bf" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="268" y="91" text-anchor="middle" font-size="12" font-weight="600" fill="#1e1e1e">Kaggle creditcard.csv</text>
+
+  <!-- ===== SERVING LAYER ===== -->
+  <rect x="30" y="130" width="540" height="80" rx="10" fill="#e0f2f1" fill-opacity="0.4" stroke="#009688" stroke-width="1"/>
+  <text x="42" y="146" font-size="11" fill="#00695c" font-weight="700" letter-spacing="1">SERVING</text>
+  <rect x="55" y="155" width="220" height="38" rx="6" fill="#b2dfdb" stroke="#009688" stroke-width="1.5"/>
+  <text x="165" y="179" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">FastAPI :8000</text>
+  <rect x="300" y="155" width="250" height="38" rx="6" fill="#ffcdd2" stroke="#FF4B4B" stroke-width="1.5"/>
+  <text x="425" y="179" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">Streamlit :8501</text>
+
+  <!-- ===== ORCHESTRATION LAYER ===== -->
+  <rect x="30" y="232" width="540" height="100" rx="10" fill="#e3f2fd" fill-opacity="0.4" stroke="#017CEE" stroke-width="1"/>
+  <text x="42" y="248" font-size="11" fill="#017CEE" font-weight="700" letter-spacing="1">ORCHESTRATION</text>
+  <rect x="130" y="258" width="320" height="38" rx="6" fill="#bbdefb" stroke="#017CEE" stroke-width="1.5"/>
+  <text x="290" y="282" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">Apache Airflow :8080</text>
+  <rect x="90" y="302" width="190" height="22" rx="4" fill="#e3f2fd" stroke="#017CEE" stroke-width="1"/>
+  <text x="185" y="317" text-anchor="middle" font-size="10" fill="#017CEE">fraud_detection_pipeline</text>
+  <rect x="295" y="302" width="175" height="22" rx="4" fill="#e3f2fd" stroke="#017CEE" stroke-width="1"/>
+  <text x="383" y="317" text-anchor="middle" font-size="10" fill="#017CEE">fraud_retraining_ct</text>
+
+  <!-- ===== MLOPS LAYER ===== -->
+  <rect x="30" y="354" width="540" height="70" rx="10" fill="#e1f5fe" fill-opacity="0.4" stroke="#0194E2" stroke-width="1"/>
+  <text x="42" y="370" font-size="11" fill="#0194E2" font-weight="700" letter-spacing="1">MLOPS</text>
+  <rect x="150" y="378" width="280" height="38" rx="6" fill="#b3e5fc" stroke="#0194E2" stroke-width="1.5"/>
+  <text x="290" y="402" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">MLflow :5000</text>
+  <text x="290" y="416" text-anchor="middle" font-size="10" fill="#0194E2">Tracking + Model Registry</text>
+
+  <!-- ===== DATA LAYER ===== -->
+  <rect x="30" y="446" width="540" height="80" rx="10" fill="#e8eaf6" fill-opacity="0.4" stroke="#336791" stroke-width="1"/>
+  <text x="42" y="462" font-size="11" fill="#336791" font-weight="700" letter-spacing="1">DATA LAYER</text>
+  <rect x="70" y="472" width="230" height="38" rx="6" fill="#bbcfe8" stroke="#336791" stroke-width="1.5"/>
+  <text x="185" y="496" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">PostgreSQL :5432</text>
+  <rect x="325" y="472" width="230" height="38" rx="6" fill="#ffe0b2" stroke="#FF9900" stroke-width="1.5"/>
+  <text x="440" y="496" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">LocalStack S3 :4566</text>
+
+  <!-- ===== MONITORING SIDEBAR ===== -->
+  <rect x="610" y="48" width="270" height="478" rx="10" fill="#fbe9e7" fill-opacity="0.35" stroke="#E6522C" stroke-width="1"/>
+  <text x="622" y="64" font-size="11" fill="#bf360c" font-weight="700" letter-spacing="1">MONITORING</text>
+
+  <rect x="630" y="80" width="230" height="38" rx="6" fill="#ffccbc" stroke="#E6522C" stroke-width="1.5"/>
+  <text x="745" y="104" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Prometheus :9090</text>
+
+  <rect x="630" y="136" width="230" height="38" rx="6" fill="#ffe0b2" stroke="#F46800" stroke-width="1.5"/>
+  <text x="745" y="160" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Grafana :3000</text>
+
+  <rect x="630" y="192" width="230" height="32" rx="5" fill="#fff3e0" stroke="#F46800" stroke-width="1"/>
+  <text x="745" y="213" text-anchor="middle" font-size="12" fill="#1e1e1e">StatsD Exporter :9102</text>
+
+  <rect x="630" y="240" width="230" height="32" rx="5" fill="#fff3e0" stroke="#E6522C" stroke-width="1"/>
+  <text x="745" y="261" text-anchor="middle" font-size="12" fill="#1e1e1e">Node Exporter :9100</text>
+
+  <rect x="630" y="288" width="230" height="32" rx="5" fill="#fff3e0" stroke="#E6522C" stroke-width="1"/>
+  <text x="745" y="309" text-anchor="middle" font-size="12" fill="#1e1e1e">cAdvisor :8081</text>
+
+  <!-- Monitoring internal arrows -->
+  <!-- StatsD → Prometheus -->
+  <line x1="745" y1="224" x2="745" y2="118" stroke="#E6522C" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <!-- Node Exporter → Prometheus -->
+  <line x1="700" y1="240" x2="700" y2="118" stroke="#E6522C" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+  <!-- cAdvisor → Prometheus -->
+  <line x1="660" y1="288" x2="660" y2="118" stroke="#E6522C" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-red)"/>
+  <!-- Prometheus → Grafana -->
+  <line x1="790" y1="118" x2="790" y2="136" stroke="#F46800" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+
+  <!-- ===== ADMIN & TESTING SIDEBAR ===== -->
+  <rect x="920" y="48" width="250" height="478" rx="10" fill="#f5f5f5" fill-opacity="0.5" stroke="#999" stroke-width="1"/>
+  <text x="932" y="64" font-size="11" fill="#555" font-weight="700" letter-spacing="1">ADMIN &amp; TESTING</text>
+
+  <rect x="940" y="84" width="210" height="38" rx="6" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
+  <text x="1045" y="108" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">pgAdmin :5051</text>
+
+  <rect x="940" y="140" width="210" height="38" rx="6" fill="#e0e0e0" stroke="#999" stroke-width="1.5"/>
+  <text x="1045" y="164" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">Locust :8089</text>
+
+  <!-- ===== CONNECTION ARROWS ===== -->
+
+  <!-- User → Streamlit -->
+  <line x1="105" y1="100" x2="380" y2="155" stroke="#1e1e1e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- User → FastAPI -->
+  <line x1="105" y1="100" x2="135" y2="155" stroke="#1e1e1e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- User → Airflow -->
+  <line x1="80" y1="100" x2="80" y2="258" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="60" y="180" font-size="9" fill="#555" transform="rotate(-90 60 180)">UI</text>
+
+  <!-- Kaggle CSV → Airflow (volume mount) -->
+  <line x1="268" y1="100" x2="268" y2="258" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="275" y="200" font-size="9" fill="#92400e">volume mount</text>
+
+  <!-- Streamlit → FastAPI -->
+  <line x1="300" y1="174" x2="275" y2="174" stroke="#FF4B4B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="287" y="167" text-anchor="middle" font-size="9" fill="#555">REST</text>
+
+  <!-- FastAPI → MLflow (load model) -->
+  <line x1="165" y1="193" x2="215" y2="378" stroke="#009688" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="150" y="290" font-size="9" fill="#009688">load model</text>
+
+  <!-- FastAPI → LocalStack S3 (load scaler) -->
+  <line x1="120" y1="193" x2="400" y2="472" stroke="#009688" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
+  <text x="220" y="360" font-size="9" fill="#009688">load scaler</text>
+
+  <!-- Airflow → MLflow (log experiments) -->
+  <line x1="290" y1="332" x2="290" y2="378" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
+  <text x="298" y="358" font-size="9" fill="#017CEE">log experiments</text>
+
+  <!-- Airflow → PostgreSQL (metadata) -->
+  <line x1="200" y1="332" x2="185" y2="472" stroke="#017CEE" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-blue)"/>
+  <text x="140" y="410" font-size="9" fill="#336791">metadata</text>
+
+  <!-- Airflow → LocalStack S3 (artifacts) -->
+  <line x1="380" y1="332" x2="440" y2="472" stroke="#017CEE" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <text x="420" y="410" font-size="9" fill="#FF9900">artifacts</text>
+
+  <!-- MLflow → PostgreSQL -->
+  <line x1="240" y1="416" x2="210" y2="472" stroke="#0194E2" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- MLflow → S3 -->
+  <line x1="340" y1="416" x2="390" y2="472" stroke="#0194E2" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+  <!-- FastAPI/Airflow → StatsD → Prometheus -->
+  <line x1="275" y1="174" x2="630" y2="208" stroke="#E6522C" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr-red)"/>
+  <text x="460" y="182" font-size="9" fill="#E6522C">metrics</text>
+
+  <!-- pgAdmin → PostgreSQL -->
+  <line x1="940" y1="103" x2="300" y2="491" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+  <!-- Locust → FastAPI -->
+  <line x1="940" y1="159" x2="275" y2="174" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="620" y="155" font-size="9" fill="#555">load test</text>
+
+  <!-- ===== LEGEND ===== -->
+  <rect x="30" y="548" width="1140" height="70" rx="8" fill="#fafafa" stroke="#ddd" stroke-width="1"/>
+  <text x="50" y="568" font-size="11" font-weight="700" fill="#1e1e1e">LEGEND</text>
+
+  <!-- Solid line -->
+  <line x1="50" y1="590" x2="90" y2="590" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="98" y="594" font-size="10" fill="#555">Data flow</text>
+
+  <!-- Dashed line -->
+  <line x1="200" y1="590" x2="240" y2="590" stroke="#1e1e1e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="248" y="594" font-size="10" fill="#555">Config / metadata</text>
+
+  <!-- Color swatches -->
+  <rect x="400" y="582" width="14" height="14" rx="3" fill="#b2dfdb" stroke="#009688" stroke-width="1"/>
+  <text x="420" y="594" font-size="10" fill="#555">Serving</text>
+
+  <rect x="490" y="582" width="14" height="14" rx="3" fill="#bbdefb" stroke="#017CEE" stroke-width="1"/>
+  <text x="510" y="594" font-size="10" fill="#555">Orchestration</text>
+
+  <rect x="610" y="582" width="14" height="14" rx="3" fill="#b3e5fc" stroke="#0194E2" stroke-width="1"/>
+  <text x="630" y="594" font-size="10" fill="#555">MLOps</text>
+
+  <rect x="700" y="582" width="14" height="14" rx="3" fill="#bbcfe8" stroke="#336791" stroke-width="1"/>
+  <text x="720" y="594" font-size="10" fill="#555">Data</text>
+
+  <rect x="770" y="582" width="14" height="14" rx="3" fill="#ffccbc" stroke="#E6522C" stroke-width="1"/>
+  <text x="790" y="594" font-size="10" fill="#555">Monitoring</text>
+
+  <rect x="890" y="582" width="14" height="14" rx="3" fill="#e0e0e0" stroke="#999" stroke-width="1"/>
+  <text x="910" y="594" font-size="10" fill="#555">Admin / Testing</text>
+
+  <!-- Footer -->
+  <text x="600" y="650" text-anchor="middle" font-size="11" fill="#999">FraudGuard — MLOps Credit Card Fraud Detection Pipeline — 13 Docker Services</text>
+</svg>

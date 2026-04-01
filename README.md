@@ -74,13 +74,17 @@ Le système est composé de **13 services Docker** interconnectés, orchestrés 
 ### Pipeline d'entraînement ML
 
 <p align="center">
-  <img src="docs/screenshots/ml_pipeline.png" alt="Pipeline ML" width="75%">
+  <a href="https://raw.githubusercontent.com/tahianahajanirina/Fraudguard/develop/docs/diagrams/ml_pipeline.svg">
+    <img src="docs/diagrams/ml_pipeline.svg" alt="Pipeline ML — fraud_detection_pipeline" width="85%"/>
+  </a>
 </p>
 
 ### DAG de réentraînement continu
 
 <p align="center">
-  <img src="docs/screenshots/retraining_dag.png" alt="DAG Réentraînement" width="75%">
+  <a href="https://raw.githubusercontent.com/tahianahajanirina/Fraudguard/develop/docs/diagrams/retraining_dag.svg">
+    <img src="docs/diagrams/retraining_dag.svg" alt="DAG Réentraînement — fraud_retraining_ct" width="85%"/>
+  </a>
 </p>
 
 Le DAG `fraud_retraining_ct` s'exécute **quotidiennement** et vérifie deux conditions :

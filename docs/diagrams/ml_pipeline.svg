@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect x="0" y="0" width="900" height="400" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#1e1e1e"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#017CEE"/>
+    </marker>
+    <marker id="arr-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#009688"/>
+    </marker>
+  </defs>
+
+  <!-- Zone background -->
+  <rect x="30" y="30" width="840" height="340" rx="10" fill="#e3f2fd" fill-opacity="0.25" stroke="#017CEE" stroke-width="1"/>
+  <text x="450" y="55" text-anchor="middle" font-size="14" fill="#017CEE" font-weight="700" letter-spacing="1">DAG: fraud_detection_pipeline</text>
+
+  <!-- Step 1: ingest_and_preprocess -->
+  <rect x="310" y="80" width="280" height="56" rx="8" fill="#bbdefb" stroke="#017CEE" stroke-width="1.5"/>
+  <text x="450" y="103" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">ingest_and_preprocess</text>
+  <text x="450" y="122" text-anchor="middle" font-size="10" fill="#017CEE">Load CSV · Drop Time · Scale Amount · 80/20 split → S3</text>
+
+  <!-- Arrow: ingest → isolation_forest -->
+  <path d="M380 136 L380 155 Q380 165 370 165 L270 165 Q260 165 260 175 L260 188" fill="none" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
+
+  <!-- Arrow: ingest → lightgbm -->
+  <path d="M520 136 L520 155 Q520 165 530 165 L630 165 Q640 165 640 175 L640 188" fill="none" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
+
+  <!-- Step 2a: train_isolation_forest -->
+  <rect x="120" y="190" width="280" height="56" rx="8" fill="#b2dfdb" stroke="#009688" stroke-width="1.5"/>
+  <text x="260" y="213" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">train_isolation_forest</text>
+  <text x="260" y="232" text-anchor="middle" font-size="10" fill="#009688">contamination=0.002 · n_estimators=100 · AUC-PR</text>
+
+  <!-- Step 2b: train_lightgbm -->
+  <rect x="500" y="190" width="280" height="56" rx="8" fill="#b2dfdb" stroke="#009688" stroke-width="1.5"/>
+  <text x="640" y="213" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">train_lightgbm</text>
+  <text x="640" y="232" text-anchor="middle" font-size="10" fill="#009688">n_estimators=200 · class_weight=balanced · AUC-PR</text>
+
+  <!-- Arrow: isolation_forest → register_best_model -->
+  <path d="M260 246 L260 268 Q260 278 270 278 L370 278 Q380 278 380 288 L380 300" fill="none" stroke="#009688" stroke-width="2" marker-end="url(#arr-teal)"/>
+
+  <!-- Arrow: lightgbm → register_best_model -->
+  <path d="M640 246 L640 268 Q640 278 630 278 L530 278 Q520 278 520 288 L520 300" fill="none" stroke="#009688" stroke-width="2" marker-end="url(#arr-teal)"/>
+
+  <!-- Step 3: register_best_model -->
+  <rect x="310" y="302" width="280" height="56" rx="8" fill="#e1bee7" stroke="#8e24aa" stroke-width="1.5"/>
+  <text x="450" y="325" text-anchor="middle" font-size="15" font-weight="600" fill="#1e1e1e">register_best_model</text>
+  <text x="450" y="344" text-anchor="middle" font-size="10" fill="#8e24aa">Compare AUC-PR → Winner=Production · Loser=Staging</text>
+
+  <!-- Labels on arrows -->
+  <text x="330" y="160" font-size="9" fill="#555">parallel</text>
+  <text x="540" y="160" font-size="9" fill="#555">parallel</text>
+
+  <!-- Footer -->
+  <text x="450" y="390" text-anchor="middle" font-size="10" fill="#999">Apache Airflow DAG — schedule=None (manually triggered)</text>
+</svg>

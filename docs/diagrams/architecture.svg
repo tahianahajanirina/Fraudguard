@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
-  <rect x="0" y="0" width="1200" height="780" rx="12" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -10 1200 680" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect x="0" y="-10" width="1200" height="680" rx="12" fill="#ffffff"/>
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
       <path d="M0 0L10 5L0 10z" fill="#1e1e1e"/>
@@ -119,13 +119,13 @@
   <line x1="300" y1="174" x2="275" y2="174" stroke="#FF4B4B" stroke-width="1.5" marker-end="url(#arr)"/>
   <text x="287" y="167" text-anchor="middle" font-size="9" fill="#555">REST</text>
 
-  <!-- FastAPI → MLflow (load model) -->
-  <line x1="165" y1="193" x2="215" y2="378" stroke="#009688" stroke-width="1.5" marker-end="url(#arr-green)"/>
-  <text x="150" y="290" font-size="9" fill="#009688">load model</text>
+  <!-- FastAPI → MLflow (load model) — curved to avoid crossing Airflow zone -->
+  <path d="M100 193 L100 290 Q100 300 110 300 L140 300 Q150 300 150 310 L150 378 Q150 388 160 388 L215 388" fill="none" stroke="#009688" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="70" y="290" font-size="9" fill="#009688">load model</text>
 
-  <!-- FastAPI → LocalStack S3 (load scaler) -->
-  <line x1="120" y1="193" x2="400" y2="472" stroke="#009688" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
-  <text x="220" y="360" font-size="9" fill="#009688">load scaler</text>
+  <!-- FastAPI → LocalStack S3 (load scaler) — routed along right edge of main zone -->
+  <path d="M275 193 L275 220 Q275 230 285 230 L500 230 Q510 230 510 240 L510 460 Q510 470 500 470 L465 472" fill="none" stroke="#009688" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
+  <text x="518" y="360" font-size="9" fill="#009688">load scaler</text>
 
   <!-- Airflow → MLflow (log experiments) -->
   <line x1="290" y1="332" x2="290" y2="378" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
@@ -148,12 +148,13 @@
   <line x1="275" y1="174" x2="630" y2="208" stroke="#E6522C" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr-red)"/>
   <text x="460" y="182" font-size="9" fill="#E6522C">metrics</text>
 
-  <!-- pgAdmin → PostgreSQL -->
-  <line x1="940" y1="103" x2="300" y2="491" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <!-- pgAdmin → PostgreSQL — routed below main zone to avoid crossing -->
+  <path d="M940 110 L920 110 Q910 110 910 120 L910 540 Q910 550 900 550 L185 550 Q175 550 175 540 L175 510" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="550" y="562" font-size="9" fill="#555">pgAdmin → PostgreSQL</text>
 
-  <!-- Locust → FastAPI -->
-  <line x1="940" y1="159" x2="275" y2="174" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
-  <text x="620" y="155" font-size="9" fill="#555">load test</text>
+  <!-- Locust → FastAPI — routed above serving zone to avoid crossing monitoring -->
+  <path d="M940 150 L920 150 Q910 150 910 140 L910 40 Q910 30 900 30 L165 30 Q155 30 155 40 L155 155" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="550" y="26" font-size="9" fill="#555">load test</text>
 
   <!-- ===== LEGEND ===== -->
   <rect x="30" y="548" width="1140" height="70" rx="8" fill="#fafafa" stroke="#ddd" stroke-width="1"/>

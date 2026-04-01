@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect x="0" y="0" width="900" height="400" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#1e1e1e"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#017CEE"/>
+    </marker>
+    <marker id="arr-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#d32f2f"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#2e7d32"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#f57c00"/>
+    </marker>
+  </defs>
+
+  <!-- Zone background -->
+  <rect x="30" y="30" width="840" height="340" rx="10" fill="#fff8e1" fill-opacity="0.3" stroke="#f57c00" stroke-width="1"/>
+  <text x="450" y="55" text-anchor="middle" font-size="14" fill="#e65100" font-weight="700" letter-spacing="1">DAG: fraud_retraining_ct (daily)</text>
+
+  <!-- Step 1a: check_model_performance -->
+  <rect x="50" y="100" width="260" height="56" rx="8" fill="#bbdefb" stroke="#017CEE" stroke-width="1.5"/>
+  <text x="180" y="123" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">check_model_performance</text>
+  <text x="180" y="142" text-anchor="middle" font-size="10" fill="#017CEE">Query MLflow Production · F1 / ROC-AUC</text>
+
+  <!-- Step 1b: check_data_drift -->
+  <rect x="50" y="200" width="260" height="56" rx="8" fill="#bbdefb" stroke="#017CEE" stroke-width="1.5"/>
+  <text x="180" y="223" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">check_data_drift</text>
+  <text x="180" y="242" text-anchor="middle" font-size="10" fill="#017CEE">Statistical tests vs training baseline</text>
+
+  <!-- Arrow: check_model_performance → decide_retraining -->
+  <path d="M310 128 L380 128 Q390 128 390 138 L390 178 Q390 188 400 188 L430 188" fill="none" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
+
+  <!-- Arrow: check_data_drift → decide_retraining -->
+  <path d="M310 228 L380 228 Q390 228 390 218 L390 198 Q390 188 400 188 L430 188" fill="none" stroke="#017CEE" stroke-width="2" marker-end="url(#arr-blue)"/>
+
+  <!-- Step 2: decide_retraining (diamond) -->
+  <polygon points="490,148 550,188 490,228 430,188" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+  <text x="490" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#e65100">decide</text>
+  <text x="490" y="198" text-anchor="middle" font-size="11" font-weight="600" fill="#e65100">retraining</text>
+
+  <!-- Arrow: decide → trigger_retraining (degraded or drift) -->
+  <path d="M550 188 L580 188 Q590 188 590 178 L590 138 Q590 128 600 128 L628 128" fill="none" stroke="#d32f2f" stroke-width="2" marker-end="url(#arr-red)"/>
+  <text x="568" y="148" font-size="10" font-weight="600" fill="#d32f2f">degraded</text>
+  <text x="568" y="160" font-size="10" font-weight="600" fill="#d32f2f">OR drift</text>
+
+  <!-- Arrow: decide → skip_retraining (OK) -->
+  <path d="M550 188 L580 188 Q590 188 590 198 L590 238 Q590 248 600 248 L628 248" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-green)"/>
+  <text x="575" y="240" font-size="10" font-weight="600" fill="#2e7d32">OK</text>
+
+  <!-- Step 3a: trigger_retraining -->
+  <rect x="630" y="100" width="210" height="56" rx="8" fill="#ffcdd2" stroke="#d32f2f" stroke-width="1.5"/>
+  <text x="735" y="123" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">trigger_retraining</text>
+  <text x="735" y="142" text-anchor="middle" font-size="10" fill="#d32f2f">TriggerDagRunOperator</text>
+
+  <!-- Step 3b: skip_retraining -->
+  <rect x="630" y="220" width="210" height="56" rx="8" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="735" y="243" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1e1e">skip_retraining</text>
+  <text x="735" y="262" text-anchor="middle" font-size="10" fill="#2e7d32">Log OK · exit</text>
+
+  <!-- Link annotation: trigger → fraud_detection_pipeline -->
+  <rect x="660" y="165" width="180" height="20" rx="4" fill="#fff3e0" stroke="#f57c00" stroke-width="1"/>
+  <text x="750" y="179" text-anchor="middle" font-size="9" fill="#e65100">→ launches fraud_detection_pipeline</text>
+
+  <!-- Legend -->
+  <rect x="50" y="310" width="790" height="48" rx="6" fill="#fafafa" stroke="#ddd" stroke-width="1"/>
+  <text x="70" y="328" font-size="11" font-weight="700" fill="#1e1e1e">LEGEND</text>
+  <rect x="70" y="338" width="12" height="12" rx="3" fill="#bbdefb" stroke="#017CEE" stroke-width="1"/>
+  <text x="88" y="349" font-size="10" fill="#555">Check tasks</text>
+  <polygon points="190,344 200,338 210,344 200,350" fill="#fff3e0" stroke="#f57c00" stroke-width="1"/>
+  <text x="218" y="349" font-size="10" fill="#555">BranchPythonOperator</text>
+  <rect x="370" y="338" width="12" height="12" rx="3" fill="#ffcdd2" stroke="#d32f2f" stroke-width="1"/>
+  <text x="388" y="349" font-size="10" fill="#555">Retrain (degraded/drift)</text>
+  <rect x="540" y="338" width="12" height="12" rx="3" fill="#c8e6c9" stroke="#2e7d32" stroke-width="1"/>
+  <text x="558" y="349" font-size="10" fill="#555">Skip (model OK)</text>
+
+  <!-- Footer -->
+  <text x="450" y="390" text-anchor="middle" font-size="10" fill="#999">Apache Airflow DAG — schedule=@daily — Continuous Training</text>
+</svg>
